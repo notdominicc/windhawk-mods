@@ -2,7 +2,7 @@
 // @id              macos-style-dock
 // @name            MacOS Style Dock
 // @description     Turns the Windows 11 taskbar into a macOS-style dock with magnifying icons
-// @version         1.0
+// @version         1.1
 // @author          Zach Vaughn
 // @github          https://github.com/zachvdev
 // @include         explorer.exe
@@ -27,15 +27,17 @@ Island & Dock", which replaces the taskbar with a separate dock window.)
 ## The look
 
 - **A frosted glass dock.** Your icons sit on a rounded plate of blurred,
-  tinted glass with a thin edge, floating just above the bottom of the
-  screen, in place of the taskbar's flat background. It's dark, light, or
-  follows your Windows theme.
+  tinted glass, floating just above the bottom of the screen, in place of the
+  taskbar's flat background. It's dark, light, or follows your Windows theme,
+  and its edge is either a thin outline or soft inner highlights.
 - **Bigger icons, no boxes.** Icons are shown larger, without the square
   highlight Windows draws behind them on hover or for the active app.
 - **Sharp at any size.** Icons are loaded at the size they're shown at when
   fully magnified, so they stay crisp as they grow.
-- **Running indicators.** A small dot under each running app, just above
-  the bottom of the dock.
+- **Running indicators.** A small dot under each running app, just above the
+  bottom of the dock: bright for the app you're using, dim for the others.
+- **Badges where they belong.** Unread counts and overlay icons sit on the
+  top-right corner of their icon and grow with it.
 - **Dividers.** Thin lines separate Start, Task View and File Explorer from
   your other apps, and your apps from the Recycle Bin.
 - **A tidier system tray.** The clock, notifications and tray icons on the
@@ -52,12 +54,17 @@ Island & Dock", which replaces the taskbar with a separate dock window.)
 - **Over your windows.** Maximized windows reach down to the top of the
   dock, and magnified icons rise over them. Windows still keeps the dock's
   own strip of the screen free.
+- **Auto-hide.** Turn on "Auto-hide the dock" and the dock slides away when
+  the pointer leaves it and comes back when you move to the bottom edge of
+  the screen. Windows then keeps no strip of the screen free for it, so
+  windows can go underneath.
 - **A fixed order.** Start comes first, then Task View, then File Explorer,
   a divider, and the rest of your apps. Whenever File Explorer is pinned or
   open, it keeps its spot next to the divider and can't be dragged
   elsewhere; your other apps can be rearranged as usual.
-- **Jump lists in the right place.** Right-click menus open above the icon
-  you clicked.
+- **Menus and previews in the right place.** Right-click menus open above
+  the icon you clicked, and hover previews and tooltips sit just above the
+  dock, or above the magnified icon.
 - **A Recycle Bin** at the right end of the dock, using Windows' own icon,
   which shows whether it's empty or full. Click it to open it, drag files
   onto it to delete them (they can be restored), or right-click it to open
@@ -65,26 +72,30 @@ Island & Dock", which replaces the taskbar with a separate dock window.)
 
 ## Settings
 
-- **Dock Panel:** the size of the icons and dock, and the dock's color
-  (System, Dark or Light), tint and blur.
+- **Behavior:** auto-hide the dock.
+- **Dock Panel:** the size of the icons and dock, the space between icons,
+  the gap between the dock and the bottom of the screen, the dock's color
+  (System, Dark or Light), its edge style (Outline or Inner highlights),
+  tint and blur.
 - **Magnification:** how much icons grow, how far from the pointer they
-  grow, how long the animation takes, and whether icons magnify over
-  maximized windows. With that turned off, the space above the dock is kept
-  free for magnified icons instead, so maximized windows get a little less
-  of the screen.
-- **Dock Items:** the divider after File Explorer, and the Recycle Bin.
+  grow, and how long the animation takes.
+- **Dock Items:** the divider after File Explorer, the Recycle Bin, and the
+  Start button.
+- **System Tray:** hide the system tray (the clock, volume, network and tray
+  icons).
 
 ## Compatibility
 
 - Windows 11 only, with the taskbar at the bottom of the screen.
 - x64 PCs only for now; ARM64 isn't supported yet.
 - The "Small taskbar buttons" setting isn't supported.
-- Leave Windows' "Automatically hide the taskbar" setting off. While
-  "Magnify over windows" is on, the mod turns it on behind the scenes (and
-  keeps the taskbar from hiding), and puts it back as it was when the
-  setting or the mod is turned off. If the mod can't put it back, for
-  example when Windhawk is uninstalled while Explorer isn't running, turn it
-  off yourself in Windows' taskbar settings.
+- Leave Windows' "Automatically hide the taskbar" setting alone. While the
+  mod is loaded, it turns that setting on behind the scenes (that's how
+  maximized windows can reach the dock) and keeps the taskbar from hiding
+  unless "Auto-hide the dock" is on. It puts the setting back as it was when
+  the mod is unloaded. If the mod can't put it back, for example when
+  Windhawk is uninstalled while Explorer isn't running, turn it off yourself
+  in Windows' taskbar settings.
 - Icons are loaded at high resolution on Windows 11 with the October 2024
   update (KB5044384) or later. On older builds, magnified icons are blurrier.
 - Not designed to be used with other taskbar mods. In particular, it sets
@@ -92,7 +103,9 @@ Island & Dock", which replaces the taskbar with a separate dock window.)
   itself, and places their right-click menus, so don't combine it with
   "Taskbar height and icon size", "Taskbar Dock Animation", "Taskbar Dock
   Animation Plus", "Mac Island & Dock", "Taskbar Multirow" or "Start button
-  always on the left".
+  always on the left". "Windows 11 Taskbar Styler" can be used for things
+  the dock doesn't change, such as the volume popup, but styling the same
+  elements as the dock may conflict with it.
 - If Windows' Smart App Control is on, it blocks this mod (as it does all
   Windhawk mods), because the mod is compiled on your PC and isn't signed.
 
@@ -101,16 +114,29 @@ Island & Dock", which replaces the taskbar with a separate dock window.)
 The taskbar height code is based on m417z's "Taskbar height and icon size"
 mod. The way it handles dragging icons and places right-click menus follows
 his "Taskbar Multirow" mod, and the way it keeps the taskbar shown follows
-his "Taskbar auto-hide when maximized" mod (all GPL-3.0).
+his "Taskbar auto-hide when maximized" mod. The running-indicator dots and
+the hiding of the Start button and system tray follow rules from the
+"Windows 11 Taskbar Styler" mod (all GPL-3.0).
 */
 // ==/WindhawkModReadme==
 
 // ==WindhawkModSettings==
 /*
+- behavior:
+  - autoHide: false
+    $name: Auto-hide the dock
+    $description: Hide the dock when the pointer is away from it, and slide it back when you move to the bottom edge of the screen.
+  $name: Behavior
 - dock:
   - size: 55
     $name: Size (0-100)
     $description: Size of the icons and the dock. (Default = 55)
+  - iconSpacing: 13
+    $name: Icon spacing (px)
+    $description: Space between each icon in the dock. (Default = 13)
+  - bottomGap: 7
+    $name: Bottom gap (px)
+    $description: Space between the bottom of the screen and the dock. (Default = 7)
   - color: auto
     $name: Color
     $description: The color of the dock panel.
@@ -118,6 +144,12 @@ his "Taskbar auto-hide when maximized" mod (all GPL-3.0).
     - auto: System
     - dark: Dark
     - light: Light
+  - style: outline
+    $name: Style
+    $description: Outline draws a thin edge around the dock. Inner highlights draws light lines along the top and bottom only, not around the corners.
+    $options:
+    - outline: Outline
+    - highlights: Inner highlights
   - tint: 20
     $name: Tint (0-100)
     $description: How opaque the dock panel is. (Default = 20)
@@ -135,9 +167,6 @@ his "Taskbar auto-hide when maximized" mod (all GPL-3.0).
   - smoothing: 100
     $name: Smoothing (ms)
     $description: Duration of animation transitions. (Default = 100)
-  - overWindows: true
-    $name: Magnify over windows
-    $description: Maximized windows reach down to the dock, and magnified icons rise over them.
   $name: Magnification
 - items:
   - appsDivider: true
@@ -146,7 +175,15 @@ his "Taskbar auto-hide when maximized" mod (all GPL-3.0).
   - recycleBin: true
     $name: Recycle Bin
     $description: Show the Recycle Bin at the right end of the dock, after a divider.
+  - startButton: true
+    $name: Start button
+    $description: Show the Windows Start button at the left end of the dock.
   $name: Dock Items
+- tray:
+  - hideTray: false
+    $name: Hide system tray
+    $description: Hide the clock, volume, network and tray icons at the right end of the taskbar.
+  $name: System Tray
 */
 // ==/WindhawkModSettings==
 
@@ -195,6 +232,7 @@ his "Taskbar auto-hide when maximized" mod (all GPL-3.0).
 #include <winrt/Windows.UI.Xaml.Input.h>
 #include <winrt/Windows.UI.Xaml.Media.h>
 #include <winrt/Windows.UI.Xaml.Media.Imaging.h>
+#include <winrt/Windows.UI.Xaml.Shapes.h>
 
 namespace wadt = winrt::Windows::ApplicationModel::DataTransfer;
 namespace wf = winrt::Windows::Foundation;
@@ -205,18 +243,24 @@ namespace wuxi = winrt::Windows::UI::Xaml::Input;
 namespace wuxm = winrt::Windows::UI::Xaml::Media;
 namespace wuc = winrt::Windows::UI::Composition;
 namespace wge = winrt::Windows::Graphics::Effects;
+namespace wuxs = winrt::Windows::UI::Xaml::Shapes;
 
 // ---- Settings, as the user set them ----
 int g_dockSize = 55;           // 0-100
+int g_iconSpacingSetting = 13; // pixels between icons
 float g_scale = 1.6f;          // from Magnification Amount: 0-100 -> 1.0-2.0
 int g_dockTint = 20;           // 0-100
 int g_dockBlur = 35;           // 0-100
+int g_dockBottomGapSetting = 7; // pixels
 int g_magnificationRange = 55; // 0-100
 int g_dockTheme = 0;           // 0 = System (follows Windows), 1 = dark, 2 = light
+int g_dockStyle = 0;           // 0 = outline, 1 = inner highlights
 int g_animationMs = 100;
 bool g_showTrash = true;
 bool g_appsDivider = true;
-bool g_magnifyOverWindows = true;
+bool g_showStart = true;
+bool g_hideTray = false;
+bool g_autoHideDock = false;
 
 // ---- Sizes derived from the settings (see ComputeSizes) ----
 float g_iconSize = 39.0f;
@@ -236,14 +280,14 @@ float g_trashSpace = 62.0f;    // room reserved after the last icon: divider + R
 constexpr float kStockIconSize = 24;      // Windows 11 taskbar icon size
 constexpr float kStockButtonWidth = 44;   // Windows 11 taskbar button width
 constexpr int kMinTaskbarHeight = 40;     // keeps the clock from being squashed
-constexpr float kButtonIconPadding = 8;   // a button is at least its icon + this wide
+constexpr float kButtonIconPadding = 16;   // a button is at least its icon + this wide
 
-// Fixed tuning, found by testing. Given for the stock 24px icon and scales
-// with the dock.
-constexpr float kIconSpacing = 4;         // on the old 0-10 scale: gap = icon / 3
 // Windows' Recycle Bin icon has empty space around it (app icons fill their
 // square), so it's drawn this much bigger, in the same slot.
 constexpr float kTrashIconScale = 1.15f;
+// How far a badge sticks out above its icon's top edge, as a fraction of the
+// icon size. Sets how much taller than the icons the taskbar window is.
+constexpr float kBadgeOverhang = 0.25f;
 
 void ComputeSizes() {
     // Exponential, so every step of the slider feels the same:
@@ -258,7 +302,7 @@ void ComputeSizes() {
     // default 39px icon (Size 55).
     g_dockSidePadding = std::round(icon * 0.385f);
     g_dockRadius = std::round(g_dockHeight * 0.3f);
-    g_dockBottomGap = std::round(icon / 6);
+    g_dockBottomGap = (float)g_dockBottomGapSetting;
     // Range 0-100: icons grow up to 1-6 icons from the pointer.
     g_radius = icon * (1 + g_magnificationRange / 20.0f);
 
@@ -266,7 +310,7 @@ void ComputeSizes() {
     // Visible gap between icons, scaled with the icons. The margins make
     // every button take up exactly icon + gap.
     g_buttonWidth = std::max(kStockButtonWidth, icon + kButtonIconPadding);
-    float gap = kIconSpacing * icon / 12;
+    float gap = (float)g_iconSpacingSetting;
     g_buttonMargin = (icon + gap - g_buttonWidth) / 2;
 
     // After the divider's space, the Recycle Bin takes up a little less than
@@ -279,14 +323,15 @@ void ComputeSizes() {
     // magnified. Shown smaller, they're scaled down, which stays sharp.
     g_iconLoadSize = std::ceil(icon * g_scale);
 
-    // The highest point the dock reaches: the top of the dock itself, or of a
-    // fully magnified icon. The icon sits centered in the dock and grows
-    // upward from its bottom edge, so its top ends up
-    // bottomGap + (dock - icon) / 2 + scale * icon above the screen's bottom.
-    // With little magnification, that's lower than the top of the dock.
+    // Top of the dock or of a fully magnified icon, whichever is higher. A
+    // magnified icon grows upward from its bottom edge.
     float dockTop = g_dockBottomGap + g_dockHeight;
     float iconTop = g_dockBottomGap + (g_dockHeight - icon) / 2 + g_scale * icon;
-    float highest = std::max(dockTop, iconTop);
+    // A badge (unread count, overlay icon) sticks out above its icon's top
+    // edge and is magnified with it. The taskbar window clips everything past
+    // its own top, so it's given room for that too.
+    float badgeTop = iconTop + kBadgeOverhang * icon * g_scale;
+    float highest = std::max({dockTop, iconTop, badgeTop});
 
     // The taskbar is just tall enough for that (+2px so a magnified icon never
     // touches the edge).
@@ -296,10 +341,8 @@ void ComputeSizes() {
 // ---------------------------------------------------------------------------
 // Shell jobs
 // ---------------------------------------------------------------------------
-// Things done through the Windows shell (recycling files, emptying the
-// Recycle Bin) run on a thread pool thread, one at a time: they can take a
-// while and show Windows' own progress and confirmation windows, which
-// mustn't hold up the taskbar.
+// Shell operations (recycling files, emptying the Recycle Bin) run one at a
+// time on a thread pool thread, so their dialogs don't block the taskbar.
 
 std::mutex g_shellJobsLock;
 std::vector<std::function<void()>> g_shellJobs;
@@ -330,10 +373,9 @@ void QueueShellJob(std::function<void()> job) {
 // ---------------------------------------------------------------------------
 // The mod's window
 // ---------------------------------------------------------------------------
-// A hidden window on the taskbar's thread, where Windows reports Recycle Bin
-// changes, and where the mod's own updates are posted to run outside the
-// taskbar's code. The app bars (see "Magnify over windows") are windows of
-// the same class, and get screen and app bar changes.
+// A hidden window on the taskbar's thread. It receives Recycle Bin change
+// notifications and the mod's own posted updates, and the app bars use the
+// same class.
 
 constexpr WCHAR kWindowClass[] = L"Windhawk_" WH_MOD_ID;
 constexpr UINT kAppBarMessage = WM_APP;              // ABN_* from the shell
@@ -395,11 +437,8 @@ struct Button {
     float extraLeft = 0, extraRight = 0;
 };
 
-// Containers holding event revokers or XAML objects are marked no_destroy:
-// when Explorer exits, XAML shuts down before globals are destroyed, and
-// destroying them then could crash it. They're wrapped in std::optional so
-// that ResetAll can destroy them when the mod is unloaded (.reset()).
-// Globals holding only weak references and plain values don't need this.
+// Containers of event revokers or XAML objects are no_destroy: XAML shuts down
+// before globals are destroyed on exit. ResetAll destroys them on unload.
 [[clang::no_destroy]] std::optional<std::list<Button>> g_buttons{std::in_place};
 
 Button* FindButton(wux::FrameworkElement const& el) {
@@ -410,11 +449,8 @@ Button* FindButton(wux::FrameworkElement const& el) {
     return nullptr;
 }
 
-// Side margins set the space between buttons: negative pulls neighbors
-// closer together, positive pushes them apart. Some buttons get extra room on
-// top (see LayOutButtons), which the taskbar lays the dock out with. Only
-// writes when different, since it also runs from the Margin change callback
-// (see OnButtonAdded).
+// Sets the side margins that space out the buttons, plus any extra room (see
+// LayOutButtons). Only writes when the value changes.
 void ApplySpacing(wux::FrameworkElement const& el) {
     Button* b = FindButton(el);
     wux::Thickness want{g_buttonMargin + (b ? b->extraLeft : 0), 0,
@@ -440,16 +476,57 @@ void RestoreLocalValue(wux::FrameworkElement const& el, wux::DependencyProperty 
 float GetRowOffsetY(wux::DependencyObject const& row);
 void PlaceIndicator(wux::FrameworkElement const& button, float s);
 
+// Set while the mod unloads, so the hooks stop touching the taskbar.
+extern std::atomic<bool> g_unloading;
+
 // The point a button is magnified around: the bottom edge of its icon. The
 // icon is centered in its button, so that's half an icon below the center.
 float ButtonPivotY(wux::FrameworkElement const& button) {
     return (float)button.ActualHeight() / 2 + g_iconSize / 2;
 }
 
-// Scale the icon (growing upward from the icon's bottom edge), shift it
-// sideways by `tx` pixels, and move it down onto the dock by its row's
-// vertical offset (see MeasurePlate). None of this affects the taskbar's
-// layout.
+// ---- Hover name tooltips: horizontal position ----
+// Centers the tooltip on the magnified icon. Its height is set by the window
+// position hooks (see "B. Hover name tooltips").
+void PlaceTooltip(wux::FrameworkElement const& button, float s, float tx) {
+    if (g_unloading) return;
+    auto raw = wuxc::ToolTipService::GetToolTip(button);
+    if (!raw) return;
+    auto tip = raw.try_as<wuxc::ToolTip>();
+    if (!tip) {
+        // The taskbar uses a plain value; wrap it so offsets can be set.
+        wuxc::ToolTip wrapper;
+        wrapper.Content(raw);
+        wuxc::ToolTipService::SetToolTip(button, wrapper);
+        tip = wrapper;
+    }
+    using wuxc::Primitives::PlacementMode;
+
+    double vertical = 0;  // height is handled by the window position hooks
+
+    if (tip.Placement() != PlacementMode::Top) tip.Placement(PlacementMode::Top);
+    if (wuxc::ToolTipService::GetPlacement(button) != PlacementMode::Top) {
+        wuxc::ToolTipService::SetPlacement(button, PlacementMode::Top);
+    }
+    if (std::fabs(tip.VerticalOffset() - vertical) > 0.25) tip.VerticalOffset(vertical);
+    if (std::fabs(tip.HorizontalOffset() - tx) > 0.25) tip.HorizontalOffset(tx);
+}
+
+// Hover name tooltips: gives the button's tooltip back its own placement.
+void RestoreTooltip(wux::FrameworkElement const& button) {
+    try {
+        button.ClearValue(wuxc::ToolTipService::PlacementProperty());
+        if (auto tip = wuxc::ToolTipService::GetToolTip(button).try_as<wuxc::ToolTip>()) {
+            tip.ClearValue(wuxc::ToolTip::PlacementProperty());
+            tip.ClearValue(wuxc::ToolTip::VerticalOffsetProperty());
+            tip.ClearValue(wuxc::ToolTip::HorizontalOffsetProperty());
+            tip.ClearValue(wuxc::ToolTip::PlacementRectProperty());
+        }
+    } catch (...) {}
+}
+
+// Scales the icon from its bottom edge, shifts it sideways by `tx`, and moves
+// it down onto the dock. Doesn't change the taskbar's layout.
 void SetScale(wux::FrameworkElement const& el, float s, float tx = 0) {
     auto visual = wuxh::ElementCompositionPreview::GetElementVisual(el);
     visual.CenterPoint({(float)el.ActualWidth() / 2, ButtonPivotY(el), 0});
@@ -460,6 +537,7 @@ void SetScale(wux::FrameworkElement const& el, float s, float tx = 0) {
     // Everything inside the button moves with it; the running indicator gets
     // pulled back down to the bottom of the dock.
     PlaceIndicator(el, s);
+    try { PlaceTooltip(el, s, tx); } catch (...) {}
 }
 
 // The row of icons the pointer is currently over. Its positions are re-read
@@ -487,6 +565,26 @@ float g_pointerX = 0;
 // has grown during this hover (see OnFrame).
 bool g_anchorLeftEnd = true;
 float g_maxGrowth = 0, g_lastGrowth = 0;
+
+// ---- Where popups above the dock go ----
+// Hover previews and name tooltips are moved down from the top of the tall
+// taskbar window to just above the dock (or the biggest magnified icon). See
+// "Popups above the dock".
+constexpr float kPreviewGap = 6;  // px between a popup and the icon
+
+// How far the top of the dock's tallest icon is above the bottom of the
+// screen, in DIPs: the dock's top when nothing is magnified, otherwise the top
+// of the biggest magnified icon.
+float DockTopInset() {
+    float maxScale = 1.0f;
+    for (auto& item : g_row) maxScale = std::max(maxScale, item.scale);
+    float iconTop = g_dockBottomGap + (g_dockHeight - g_iconSize) / 2 + maxScale * g_iconSize;
+    return std::max(g_dockBottomGap + g_dockHeight, iconTop);
+}
+
+float PopupShiftDips() {
+    return std::max(0.0f, (float)g_taskbarHeight - (DockTopInset() + kPreviewGap));
+}
 
 // ---- Hidden taskbar background ----
 
@@ -550,13 +648,9 @@ wux::FrameworkElement FindTaskbarFrame(wux::FrameworkElement const& el) {
 }
 
 // ---- Button highlight ----
-// The rounded box behind each icon when it's hovered or its window is active
-// ("BackgroundElement"), and its stacked copy for apps with several windows
-// ("MultiWindowElement"). Each is hidden two ways at once: Opacity 0, and
-// Collapsed, which isn't drawn at all whatever its opacity. The taskbar fades
-// a new app's highlight in with an animation on Opacity, and an animation
-// always beats a value we set, so opacity alone would leave it visible. If
-// the taskbar later sets either property itself, it's hidden again.
+// Hides the box behind hovered/active icons ("BackgroundElement" and
+// "MultiWindowElement"). The taskbar animates their opacity, so they're also
+// collapsed, and hidden again if the taskbar changes either property.
 
 struct HiddenHighlight {
     winrt::weak_ref<wux::FrameworkElement> element;
@@ -612,11 +706,9 @@ void RestoreHighlights() {
 }
 
 // ---- Icon size ----
-// The image named "Icon" inside each button. Windows sizes it at 24px; we
-// give it the dock's icon size, and set it again whenever the taskbar puts
-// its own size back. Resizing the image (rather than scaling the button)
-// lets Windows draw the icon from its full-resolution source, so it stays
-// sharp as long as that source is big enough.
+// Sizes each button's "Icon" image to the dock's icon size, and re-applies it
+// if the taskbar resets it. Resizing the image (instead of scaling the button)
+// keeps the icon sharp.
 
 struct IconImage {
     winrt::weak_ref<wux::FrameworkElement> element;
@@ -672,6 +764,99 @@ void RestoreIconImages() {
     g_iconImages->clear();
 }
 
+// ---- Badge (overlay icon) ----
+// The "OverlayIcon" image is aligned to the top-right of the button, which is
+// as tall as the taskbar. Its margin is set so it sits on the icon's top-right
+// corner, and re-applied when the taskbar or panel changes it.
+
+struct OverlayBadge {
+    winrt::weak_ref<wux::FrameworkElement> element;
+    winrt::weak_ref<wux::FrameworkElement> panel;
+    wf::IInspectable originalMargin{nullptr};  // local value, may be UnsetValue
+    int64_t marginToken = 0;
+    wux::FrameworkElement::SizeChanged_revoker panelSizeChanged;
+};
+
+[[clang::no_destroy]] std::optional<std::list<OverlayBadge>> g_badges{std::in_place};
+
+// How much of the badge sticks out past the icon's corner.
+constexpr double kBadgeOutside = 0.4;
+
+// Extra pixels to lift the badge above the icon's corner (at normal size).
+constexpr double kBadgeLift = 3;
+
+// Extra pixels to pull the badge left, toward the icon (at normal size).
+constexpr double kBadgeLeft = 1;
+
+void ApplyBadgePosition(wux::FrameworkElement const& el, wux::FrameworkElement const& panel) {
+    double panelHeight = panel.ActualHeight();
+    if (panelHeight <= 0) return;  // not laid out yet; the SizeChanged below tries again
+    double badgeW = el.ActualWidth() > 0 ? el.ActualWidth() : 16;
+    double badgeH = el.ActualHeight() > 0 ? el.ActualHeight() : 16;
+
+    // The icon's column: the button's width, less the panel's padding.
+    double columnWidth = g_buttonWidth;
+    if (auto grid = panel.try_as<wuxc::Grid>()) {
+        auto padding = grid.Padding();
+        columnWidth -= padding.Left + padding.Right;
+    }
+    wux::Thickness want{0, std::max(0.0, (panelHeight - g_iconSize) / 2 - badgeH * kBadgeOutside - kBadgeLift),
+                        (columnWidth - g_iconSize) / 2 - badgeW * kBadgeOutside + kBadgeLeft, 0};
+    auto m = el.Margin();
+    if (m.Left != want.Left || m.Top != want.Top || m.Right != want.Right ||
+        m.Bottom != want.Bottom) {
+        el.Margin(want);
+    }
+}
+
+void TrackBadge(wux::FrameworkElement const& el) {
+    for (auto& b : *g_badges) {
+        if (b.element.get() == el) return;
+    }
+    auto panel = wuxm::VisualTreeHelper::GetParent(el).try_as<wux::FrameworkElement>();
+    if (!panel) return;
+    auto& b = g_badges->emplace_back();
+    b.element = winrt::make_weak(el);
+    b.panel = winrt::make_weak(panel);
+    b.originalMargin = el.ReadLocalValue(wux::FrameworkElement::MarginProperty());
+    b.marginToken = el.RegisterPropertyChangedCallback(
+        wux::FrameworkElement::MarginProperty(),
+        [weakPanel = b.panel](wux::DependencyObject const& sender,
+                              wux::DependencyProperty const&) {
+            try {
+                auto fe = sender.try_as<wux::FrameworkElement>();
+                auto p = weakPanel.get();
+                if (fe && p) ApplyBadgePosition(fe, p);
+            } catch (...) {}
+        });
+    b.panelSizeChanged = panel.SizeChanged(
+        winrt::auto_revoke, [weakEl = b.element](wf::IInspectable const& sender,
+                                                 wux::SizeChangedEventArgs const&) {
+            try {
+                auto fe = weakEl.get();
+                auto p = sender.try_as<wux::FrameworkElement>();
+                if (fe && p) ApplyBadgePosition(fe, p);
+            } catch (...) {}
+        });
+    ApplyBadgePosition(el, panel);
+}
+
+void RestoreBadges() {
+    for (auto& b : *g_badges) {
+        b.panelSizeChanged.revoke();
+        auto el = b.element.get();
+        if (!el) continue;
+        try {
+            if (b.marginToken) {
+                el.UnregisterPropertyChangedCallback(wux::FrameworkElement::MarginProperty(),
+                                                     b.marginToken);
+            }
+            RestoreLocalValue(el, wux::FrameworkElement::MarginProperty(), b.originalMargin);
+        } catch (...) {}
+    }
+    g_badges->clear();
+}
+
 // A visible taskbar button and where it sits inside its row.
 struct Icon {
     wux::FrameworkElement element{nullptr};
@@ -715,10 +900,8 @@ std::vector<Icon> GetIcons(wux::UIElement const& parent) {
 // acrylic material.
 constexpr float kMaxBlur = 60;
 
-// A Gaussian blur for Windows.UI.Composition. Composition takes effects as
-// descriptions it hands to Direct2D, normally built with the Win2D library;
-// Explorer doesn't ship Win2D, so this describes the one effect we need
-// ourselves, the same way Win2D does.
+// A Gaussian blur effect for Windows.UI.Composition. Explorer doesn't ship
+// Win2D, so the effect is described directly to Direct2D.
 enum DOCK_EFFECT_PROPERTY_MAPPING : int {
     DOCK_EFFECT_PROPERTY_MAPPING_UNKNOWN = 0,
     DOCK_EFFECT_PROPERTY_MAPPING_DIRECT = 1,
@@ -838,6 +1021,7 @@ struct Plate {
     wuxc::Grid root{nullptr};                // gets positioned and sized
     wuxc::Border blurHost{nullptr};
     wuxc::Border tint{nullptr};
+    wuxc::Border highlightTop{nullptr};
     winrt::weak_ref<wux::FrameworkElement> frame;  // the taskbar it's in
     wuc::CompositionRoundedRectangleGeometry blurShape{nullptr};
     float appliedBlur = -1;
@@ -885,10 +1069,9 @@ bool IsFileExplorer(wux::FrameworkElement const& button) {
            L"Appid: Microsoft.Windows.Explorer";
 }
 
-// The button the apps divider goes after, given the dock's buttons from left
-// to right: File Explorer when it's the first app, otherwise the last of the
-// system buttons before the apps (Start, Task View). None when there's nothing
-// on one side of it.
+// The button the apps divider goes after: File Explorer if it's the first app,
+// otherwise the last system button (Start, Task View). Null if there's nothing
+// on one side.
 wux::FrameworkElement AppsDividerButton(std::vector<wux::FrameworkElement> const& buttons) {
     size_t i = 0;
     while (i < buttons.size() && winrt::get_class_name(buttons[i]) != L"Taskbar.TaskListButton") {
@@ -946,6 +1129,68 @@ void ApplyPlateLook(Plate& p) {
     p.tint.Background(wuxm::SolidColorBrush(tint));
     p.tint.BorderBrush(wuxm::SolidColorBrush(border));
     p.tint.BorderThickness({1, 1, 1, 1});
+    bool highlights = g_dockStyle == 1;
+    if (p.highlightTop) {
+        p.highlightTop.BorderThickness({0, 0, 0, 0});
+        if (!highlights) {
+            p.highlightTop.Visibility(wux::Visibility::Collapsed);
+        } else {
+            Color clear{0, 255, 255, 255};
+            // The same color at a fraction of its strength, for a soft falloff.
+            auto fade = [](Color c, double k) {
+                c.A = (uint8_t)(c.A * k);
+                return c;
+            };
+            auto addStop = [](wuxm::LinearGradientBrush const& brush, double offset, Color color) {
+                wuxm::GradientStop stop;
+                stop.Color(color);
+                stop.Offset(offset);
+                brush.GradientStops().Append(stop);
+            };
+
+            // ---- Soft inner glow (the wide, blurry highlight) ----
+            // How deep it goes, as a fraction of the dock's height.
+            double depthTop = 0.08;
+            double depthBottom = 0.10;
+            Color glowTop = light ? Color{48, 255, 255, 255} : Color{27, 255, 255, 255};
+            Color glowBottom = light ? Color{12, 0, 0, 0} : Color{13, 255, 255, 255};
+
+            wuxm::LinearGradientBrush glow;
+            glow.StartPoint({0, 0});
+            glow.EndPoint({0, 1});
+            addStop(glow, 0.0, glowTop);
+            addStop(glow, depthTop * 0.4, fade(glowTop, 0.3));
+            addStop(glow, depthTop, clear);
+            addStop(glow, 1.0 - depthBottom, clear);
+            addStop(glow, 1.0 - depthBottom * 0.4, fade(glowBottom, 0.3));
+            addStop(glow, 1.0, glowBottom);
+
+            p.highlightTop.Height(std::numeric_limits<double>::quiet_NaN());
+            p.highlightTop.VerticalAlignment(wux::VerticalAlignment::Stretch);
+            p.highlightTop.Margin({0, 0, 0, 0});
+            p.highlightTop.CornerRadius({g_dockRadius, g_dockRadius, g_dockRadius, g_dockRadius});
+            p.highlightTop.Background(glow);
+            p.highlightTop.Visibility(wux::Visibility::Visible);
+
+            // ---- Crisp rim (the sharp highlight that curls round the corners) ----
+            // How far the highlight wraps down the corners, as a fraction of
+            // the dock's height (0.30 follows the whole curve).
+            double edgeWrap = 0.30;
+            Color edgeTop = light ? Color{27, 255, 255, 255} : Color{30, 255, 255, 255};
+            Color edgeBottom = light ? Color{27, 0, 0, 0} : Color{36, 255, 255, 255};
+
+            wuxm::LinearGradientBrush rim;
+            rim.StartPoint({0, 0});
+            rim.EndPoint({0, 1});
+            addStop(rim, 0.0, edgeTop);
+            addStop(rim, edgeWrap * 0.5, fade(edgeTop, 0.35));
+            addStop(rim, edgeWrap, clear);
+            addStop(rim, 1.0 - edgeWrap, clear);
+            addStop(rim, 1.0 - edgeWrap * 0.5, fade(edgeBottom, 0.35));
+            addStop(rim, 1.0, edgeBottom);
+            p.tint.BorderBrush(rim);
+        }
+    }
     p.tint.CornerRadius({g_dockRadius, g_dockRadius, g_dockRadius, g_dockRadius});
 
     float blur = g_dockBlur * kMaxBlur / 100;
@@ -1039,9 +1284,14 @@ void EnsurePlate(wux::FrameworkElement const& button) {
     wuxc::Border tint;
     root.Children().Append(blurHost);
     root.Children().Append(tint);  // later children draw on top
-    // Placed exactly, not rounded to whole pixels. The plate's left edge and
-    // width are set separately, and each rounded on its own made the right
-    // edge wobble by a pixel while the left one moved (see ApplyPlate).
+    wuxc::Border highlightTop;
+    highlightTop.Height(1);
+    highlightTop.VerticalAlignment(wux::VerticalAlignment::Top);
+    highlightTop.IsHitTestVisible(false);
+    highlightTop.Visibility(wux::Visibility::Collapsed);
+    root.Children().Append(highlightTop);
+    // No layout rounding: rounding the plate's left edge and width separately
+    // made its right edge jitter (see ApplyPlate).
     for (wux::FrameworkElement el : {wux::FrameworkElement(root), wux::FrameworkElement(blurHost),
                                      wux::FrameworkElement(tint)}) {
         el.UseLayoutRounding(false);
@@ -1059,6 +1309,7 @@ void EnsurePlate(wux::FrameworkElement const& button) {
     p.root = root;
     p.blurHost = blurHost;
     p.tint = tint;
+    p.highlightTop = highlightTop;
 
     auto onSize = [](wf::IInspectable const&, wux::SizeChangedEventArgs const&) {
         MarkPlatesDirty();
@@ -1091,21 +1342,15 @@ void ReapplyButton(wux::FrameworkElement const& button) {
     SetScale(button, s, tx);
 }
 
-// Works out the room each of the row's buttons gets beyond the spacing, and
-// applies it where it changed (see ApplySpacing). The taskbar then lays them
-// out again, and they're measured again. `icons` are the row's buttons, in
-// any order. Returns the buttons the Recycle Bin and the apps divider go
-// after.
+// Works out the extra room each button gets beyond the spacing and applies it
+// (see ApplySpacing). `icons` are the row's buttons in any order. Returns the
+// buttons the Recycle Bin and the apps divider go after.
 //
-// - The Recycle Bin and its divider: room after the last button.
-// - The apps divider: room after its button (see AppsDividerButton).
-// - File Explorer, when it isn't the first app in the taskbar's own order
-//   (opened without being pinned, or another app was dragged before it): the
-//   first app gets room before it for File Explorer and the divider, and
-//   File Explorer is moved back into that room by its left margin, with a
-//   right margin that makes its own space zero wide, so the buttons around
-//   it stay where they are. Clicks still land on the right button, since
-//   this is the taskbar's own layout.
+// - Recycle Bin and its divider: room after the last button.
+// - Apps divider: room after its button (see AppsDividerButton).
+// - File Explorer, when it isn't the first app: the first app gets room before
+//   it, and File Explorer is moved into that room with margins, leaving the
+//   other buttons where they are.
 std::pair<wux::FrameworkElement, wux::FrameworkElement> LayOutButtons(
     Plate& p, std::vector<Icon> const& icons) {
     // The taskbar's own order. A moved File Explorer's space is zero wide,
@@ -1213,10 +1458,8 @@ void MeasurePlate(Plate& p) {
     p.baseLeft = origin.X + minLeft - padX;
     p.baseWidth = (maxRight - minLeft) + 2 * padX;
 
-    // Vertically: the dock sits at the bottom of the taskbar, and the icons
-    // are moved down onto its center. Layout can't do this: the taskbar
-    // stretches its buttons to its full height and centers each icon in its
-    // button, so the icons always end up in the middle of the taskbar.
+    // Vertically: the dock sits at the bottom of the taskbar and the icons are
+    // moved down onto it, since layout centers them in the full-height taskbar.
     float height = g_dockHeight;
     p.top = (float)panel.ActualHeight() - g_dockBottomGap - height;
     float iconCenterY = origin.Y + (minTop + maxBottom) / 2;
@@ -1497,15 +1740,10 @@ void AcceptTrashDrag(wux::DragEventArgs const& e) {
     e.Handled(true);
 }
 
-// Files dropped on the Recycle Bin: their paths are read (which Windows does
-// asynchronously), then they're recycled, both in a shell job, so the mod
-// waits for them before it unloads.
-//
-// The drop finishes right away, without waiting for that. While it hasn't
-// finished, the window the files were dragged from is stuck waiting for it,
-// and that window is also what the paths are read from: waiting would freeze
-// both for good. It also reports that nothing happened to the files, so the
-// window they came from doesn't treat them as moved and delete them itself.
+// Files dropped on the Recycle Bin: read the paths and recycle them in a shell
+// job. The drop itself finishes right away, because the source window waits
+// for it and is also where the paths are read from. It reports "no operation"
+// so the source doesn't delete the files itself.
 void OnTrashDrop(wux::DragEventArgs const& e) {
     e.Handled(true);
     e.AcceptedOperation(wadt::DataPackageOperation::None);
@@ -1572,14 +1810,16 @@ void SetTrashScale(Plate& p, float s, float tx, float dividerTx) {
 }
 
 // ---- Running indicators ----
-// The little pill under each running app. It's part of its button, so it
-// moves and grows with it; PlaceIndicator undoes that, keeping it at its
-// normal size, centered under the icon, just above the bottom of the dock.
+// The indicator is part of its button, so it would grow and move with it.
+// PlaceIndicator keeps it at normal size under the icon, just above the dock's
+// bottom edge.
 
 struct Indicator {
     winrt::weak_ref<wux::FrameworkElement> element;
     winrt::weak_ref<wux::FrameworkElement> button;
+    winrt::weak_ref<wux::FrameworkElement> dot;  // our replacement dot, if any
     wux::FrameworkElement::SizeChanged_revoker sizeChanged;
+    wux::FrameworkElement::SizeChanged_revoker dotSizeChanged;
 };
 
 [[clang::no_destroy]] std::optional<std::list<Indicator>> g_indicators{std::in_place};
@@ -1588,7 +1828,8 @@ void PlaceIndicator(wux::FrameworkElement const& button, float s) {
     wux::FrameworkElement el{nullptr};
     for (auto& i : *g_indicators) {
         if (i.button.get() == button) {
-            el = i.element.get();
+            el = i.dot.get();
+            if (!el) el = i.element.get();
             break;
         }
     }
@@ -1649,6 +1890,7 @@ void TrackIndicator(wux::FrameworkElement const& el, wux::FrameworkElement const
 void RestoreIndicators() {
     for (auto& i : *g_indicators) {
         i.sizeChanged.revoke();
+        i.dotSizeChanged.revoke();
         if (auto el = i.element.get()) {
             try {
                 auto visual = wuxh::ElementCompositionPreview::GetElementVisual(el);
@@ -1661,10 +1903,177 @@ void RestoreIndicators() {
     g_indicators->clear();
 }
 
-// (Re)builds the list of icons in `parent`. Icons that were already in the
-// list keep their current size, so rebuilding mid-hover doesn't jump; icons
-// that dropped out (e.g. the pointer moved to another monitor's taskbar) go
-// back to normal size right away.
+// ---- Running indicator style (dots, from Taskbar Styler) ----
+// The taskbar's indicator is clipped to nothing and a 4px dot is drawn instead:
+// light (#D6D6D6) for the focused app, dim (#8A8A8A) for other open apps. The
+// dot is added from the per-frame scan, not from the taskbar's hooks.
+
+bool g_scanningInFrame = false;
+
+struct StyledIndicator {
+    winrt::weak_ref<wux::FrameworkElement> element;  // the taskbar's own indicator
+    wuxs::Ellipse dot{nullptr};
+    winrt::weak_ref<wuxc::Panel> panel;
+    wux::VisualStateGroup group{nullptr};
+    winrt::event_token stateToken{};
+    wf::IInspectable originalClip{nullptr};
+    int64_t clipToken = 0;
+};
+
+[[clang::no_destroy]] std::optional<std::list<StyledIndicator>> g_styledIndicators{std::in_place};
+
+void UpdateDot(StyledIndicator& si) {
+    using winrt::Windows::UI::Color;
+    auto state = si.group.CurrentState();
+    winrt::hstring name = state ? state.Name() : winrt::hstring{};
+    if (name == L"ActiveRunningIndicator") {
+        si.dot.Fill(wuxm::SolidColorBrush(Color{255, 0xD6, 0xD6, 0xD6}));
+        si.dot.Visibility(wux::Visibility::Visible);
+    } else if (name == L"InactiveRunningIndicator") {
+        si.dot.Fill(wuxm::SolidColorBrush(Color{255, 0x8A, 0x8A, 0x8A}));
+        si.dot.Visibility(wux::Visibility::Visible);
+    } else {
+        si.dot.Visibility(wux::Visibility::Collapsed);
+    }
+}
+
+void StyleIndicator(wux::FrameworkElement const& el, wux::FrameworkElement const& button) {
+    if (!g_scanningInFrame) return;  // this changes the tree: frame scan only
+    for (auto& s : *g_styledIndicators) {
+        if (s.element.get() == el) return;
+    }
+    auto panel = wuxm::VisualTreeHelper::GetParent(el).try_as<wuxc::Panel>();
+    if (!panel) return;
+
+    // The visual state group lives on the button's template root.
+    wux::VisualStateGroup group{nullptr};
+    wux::DependencyObject current = el;
+    while (current && !group) {
+        if (auto fe = current.try_as<wux::FrameworkElement>()) {
+            if (auto groups = wux::VisualStateManager::GetVisualStateGroups(fe)) {
+                for (auto g : groups) {
+                    if (g.Name() == L"RunningIndicatorStates") {
+                        group = g;
+                        break;
+                    }
+                }
+            }
+        }
+        if (current == button) break;
+        current = wuxm::VisualTreeHelper::GetParent(current);
+    }
+    if (!group) return;
+
+    // Our dot: same place in the grid as the taskbar's indicator.
+    wuxs::Ellipse dot;
+    dot.Width(4);
+    dot.Height(4);
+    dot.IsHitTestVisible(false);
+    dot.HorizontalAlignment(el.HorizontalAlignment());
+    dot.VerticalAlignment(el.VerticalAlignment());
+    dot.Margin(el.Margin());
+    dot.Visibility(wux::Visibility::Collapsed);
+    if (panel.try_as<wuxc::Grid>()) {
+        wuxc::Grid::SetRow(dot, wuxc::Grid::GetRow(el));
+        wuxc::Grid::SetColumn(dot, wuxc::Grid::GetColumn(el));
+        wuxc::Grid::SetRowSpan(dot, wuxc::Grid::GetRowSpan(el));
+        wuxc::Grid::SetColumnSpan(dot, wuxc::Grid::GetColumnSpan(el));
+    }
+    uint32_t index = 0;
+    if (panel.Children().IndexOf(el, index)) panel.Children().InsertAt(index + 1, dot);
+    else panel.Children().Append(dot);
+
+    auto& si = g_styledIndicators->emplace_back();
+    si.element = winrt::make_weak(el);
+    si.dot = dot;
+    si.panel = winrt::make_weak(panel);
+    si.group = group;
+    si.originalClip = el.ReadLocalValue(wux::UIElement::ClipProperty());
+
+    // Hide the taskbar's own indicator. Its states don't set Clip.
+    wuxm::RectangleGeometry nothing;
+    nothing.Rect(wf::Rect{0, 0, 0, 0});
+    el.Clip(nothing);
+
+    // If anything puts a real clip back, empty it again.
+    si.clipToken = el.RegisterPropertyChangedCallback(
+        wux::UIElement::ClipProperty(),
+        [](wux::DependencyObject const& sender, wux::DependencyProperty const&) {
+            try {
+                if (g_unloading) return;
+                auto ui = sender.try_as<wux::UIElement>();
+                if (!ui) return;
+                auto current = ui.Clip();
+                if (current && current.Rect().Width == 0 && current.Rect().Height == 0) return;
+                wuxm::RectangleGeometry empty;
+                empty.Rect(wf::Rect{0, 0, 0, 0});
+                ui.Clip(empty);
+            } catch (...) {}
+        });
+
+    // Also shrink its composition visual to nothing, which XAML states can't undo.
+    wuxh::ElementCompositionPreview::GetElementVisual(el).Scale({0, 0, 1});
+
+    si.stateToken = group.CurrentStateChanged(
+        [weakEl = si.element](wf::IInspectable const&, wux::VisualStateChangedEventArgs const&) {
+            try {
+                auto indicator = weakEl.get();
+                if (!indicator || !g_styledIndicators) return;
+                for (auto& s : *g_styledIndicators) {
+                    if (s.element.get() == indicator) {
+                        UpdateDot(s);
+                        break;
+                    }
+                }
+            } catch (...) {}
+        });
+    UpdateDot(si);
+
+    // Let PlaceIndicator move and scale the dot instead of the old indicator.
+    for (auto& i : *g_indicators) {
+        if (i.element.get() != el) continue;
+        wux::FrameworkElement dotElement = dot;
+        i.dot = winrt::make_weak(dotElement);
+        i.dotSizeChanged = dotElement.SizeChanged(
+            winrt::auto_revoke, [weakButton = i.button](wf::IInspectable const&,
+                                                        wux::SizeChangedEventArgs const&) {
+                try {
+                    if (auto b = weakButton.get()) ReapplyButton(b);
+                } catch (...) {}
+            });
+        break;
+    }
+    ReapplyButton(button);
+}
+
+void RestoreStyledIndicators() {
+    for (auto& si : *g_styledIndicators) {
+        try {
+            if (si.group && si.stateToken.value) si.group.CurrentStateChanged(si.stateToken);
+        } catch (...) {}
+        try {
+            auto panel = si.panel.get();
+            uint32_t index;
+            if (panel && si.dot && panel.Children().IndexOf(si.dot, index)) {
+                panel.Children().RemoveAt(index);
+            }
+        } catch (...) {}
+        if (auto el = si.element.get()) {
+            try {
+                if (si.clipToken) {
+                    el.UnregisterPropertyChangedCallback(wux::UIElement::ClipProperty(),
+                                                         si.clipToken);
+                }
+                RestoreLocalValue(el, wux::UIElement::ClipProperty(), si.originalClip);
+            } catch (...) {}
+        }
+    }
+    g_styledIndicators->clear();
+}
+
+// (Re)builds the list of icons in `parent`. Icons already in the list keep
+// their size so a rebuild mid-hover doesn't jump; icons that dropped out reset
+// to normal size.
 void BuildRow(wux::UIElement const& parent) {
     std::vector<RowItem> old = std::move(g_row);
     Plate* oldPlate = GetRowPlate(g_rowParent.get());
@@ -1747,15 +2156,16 @@ void OnFrame() {
         alpha = 1.0f - std::exp(-dt / tau);
     }
 
-    // 0. If buttons recently came, went or were laid out: find any the hooks
-    //    haven't reported, create missing plates and re-measure them. Done
-    //    here rather than in the hooks, because the taskbar doesn't like its
-    //    tree being changed while it's updating a button.
+    // 0. After buttons change: find buttons the hooks missed, create plates and
+    //    re-measure. Done here because the taskbar doesn't tolerate tree changes
+    //    while it's updating a button.
     if (g_platesDirtyFrames > 0) {
         g_platesDirtyFrames--;
+        g_scanningInFrame = true;
         try { ScanTaskbars(); } catch (...) {
             Wh_Log(L"ScanTaskbars failed: 0x%08X", winrt::to_hresult());
         }
+        g_scanningInFrame = false;
         for (auto& b : *g_buttons) {
             if (auto el = b.element.get()) {
                 try { EnsurePlate(el); } catch (...) {
@@ -1807,13 +2217,9 @@ void OnFrame() {
     }
 
     // 2. Spread: each icon is pushed right by the extra width of the icons
-    //    before it, then the whole row is pulled back left by part of the
-    //    total (growLeft). As on a Mac, the ends of the dock are where they'd
-    //    be if it had grown evenly on both sides to its widest so far
-    //    (maxGrowth), and one of them stays there: the left end with the
-    //    pointer right of the dock's middle, so the dock grows and shrinks
-    //    on the right, and the other way around. Crossing the middle doesn't
-    //    move anything, since that's where the dock is widest.
+    //    before it, then the row is pulled back left by growLeft. As on a Mac,
+    //    one end of the dock stays put: the left end when the pointer is right
+    //    of the middle, and the other way around.
     float total = 0;
     for (size_t i = 0; i < g_row.size(); i++) {
         total += (scales[i] - 1.0f) * g_row[i].width;
@@ -1924,11 +2330,8 @@ Button& OnButtonAdded(wux::FrameworkElement const& el) {
     return b;
 }
 
-// Makes the button wide enough for the dock's icon. The taskbar keeps its
-// buttons at the stock width, since its layout code sees the stock 24px icon,
-// and that cuts off bigger icons. The button's template root (for app
-// buttons, "IconPanel") is given a minimum width instead, the way "Taskbar
-// Labels" widens buttons; the button sizes itself to fit.
+// Gives the button's template root a minimum width so bigger icons aren't cut
+// off (the taskbar sizes buttons for the stock 24px icon).
 void ApplyButtonWidth(Button& b, wux::FrameworkElement const& button) {
     auto root = b.root.get();
     if (!root) {
@@ -1941,11 +2344,9 @@ void ApplyButtonWidth(Button& b, wux::FrameworkElement const& button) {
     if (root.MinWidth() != g_buttonWidth) root.MinWidth(g_buttonWidth);
 }
 
-// App buttons' template root ("IconPanel") is a grid whose first column holds
-// the icon. The taskbar sizes that column for the stock icon (in
-// TaskListButton::UpdateIconColumnDefinition, hooked below), which cuts off
-// bigger icons whatever the button's width, so it's widened to fill the
-// button. Not needed when the column sizes itself, or isn't there.
+// Widens the first column of the app button's "IconPanel" grid, which the
+// taskbar sizes for the stock icon (see UpdateIconColumnDefinition), to fill
+// the button.
 void ApplyIconColumn(Button& b) {
     auto root = b.root.get();
     auto grid = root ? root.try_as<wuxc::Grid>() : nullptr;
@@ -1976,6 +2377,10 @@ void ReleaseButton(Button& b) {
         b.marginToken = 0;
     }
     RestoreLocalValue(el, wux::FrameworkElement::MarginProperty(), b.originalMargin);
+
+    // Give the button's tooltip back its own placement (see PlaceTooltip).
+    RestoreTooltip(el);
+
     if (auto root = b.root.get()) {
         if (b.originalIconColumn > 0) {
             if (auto grid = root.try_as<wuxc::Grid>(); grid && grid.ColumnDefinitions().Size()) {
@@ -1990,6 +2395,63 @@ void ReleaseButton(Button& b) {
     }
 }
 
+// ---- Start button ----
+// With "Start button" off, the Start button is collapsed, and collapsed again
+// if the taskbar changes its visibility.
+
+struct StartButton {
+    winrt::weak_ref<wux::FrameworkElement> element;
+    wux::Visibility originalVisibility = wux::Visibility::Visible;
+    int64_t visibilityToken = 0;
+};
+
+std::vector<StartButton> g_startButtons;
+
+bool IsStartButton(wux::FrameworkElement const& el) {
+    return winrt::get_class_name(el) == L"Taskbar.ExperienceToggleButton" &&
+           wux::Automation::AutomationProperties::GetAutomationId(el) == L"StartButton";
+}
+
+void HandleStartButton(wux::FrameworkElement const& el) {
+    if (g_showStart) return;
+    if (!IsStartButton(el)) return;
+    g_startButtons.erase(std::remove_if(g_startButtons.begin(), g_startButtons.end(),
+                                        [](StartButton& s) { return !s.element.get(); }),
+                         g_startButtons.end());
+    for (auto& s : g_startButtons) {
+        if (s.element.get() == el) return;
+    }
+    auto& s = g_startButtons.emplace_back();
+    s.element = winrt::make_weak(el);
+    s.originalVisibility = el.Visibility();
+    s.visibilityToken = el.RegisterPropertyChangedCallback(
+        wux::UIElement::VisibilityProperty(),
+        [](wux::DependencyObject const& sender, wux::DependencyProperty const&) {
+            try {
+                if (g_showStart) return;
+                if (auto ui = sender.try_as<wux::UIElement>()) {
+                    if (ui.Visibility() != wux::Visibility::Collapsed) {
+                        ui.Visibility(wux::Visibility::Collapsed);
+                    }
+                }
+            } catch (...) {}
+        });
+    el.Visibility(wux::Visibility::Collapsed);
+}
+
+void RestoreStartButtons() {
+    for (auto& s : g_startButtons) {
+        auto el = s.element.get();
+        if (!el) continue;
+        try {
+            el.UnregisterPropertyChangedCallback(wux::UIElement::VisibilityProperty(),
+                                                 s.visibilityToken);
+            el.Visibility(s.originalVisibility);
+        } catch (...) {}
+    }
+    g_startButtons.clear();
+}
+
 // Everything the mod changes in one taskbar button (an app, Start, Task
 // View...): its spacing, icon, running indicator and highlights. Safe to call
 // again; whatever is already handled is skipped.
@@ -1997,12 +2459,16 @@ void ProcessButton(wux::FrameworkElement const& button) {
     Button& b = OnButtonAdded(button);
     ApplyButtonWidth(b, button);
     ApplyIconColumn(b);
+    HandleStartButton(button);
     auto visit = [&](wux::FrameworkElement const& el) {
         auto name = el.Name();
         if (name == L"Icon") {
             TrackIconImage(el);
         } else if (name == L"RunningIndicator") {
             TrackIndicator(el, button);
+            StyleIndicator(el, button);
+        } else if (name == L"OverlayIcon") {
+            TrackBadge(el);
         } else if ((name == L"BackgroundElement" || name == L"MultiWindowElement") &&
                    el.try_as<wuxc::Border>()) {
             HideHighlight(el);
@@ -2013,10 +2479,9 @@ void ProcessButton(wux::FrameworkElement const& button) {
 }
 
 // ---- Taskbars ----
-// Each taskbar (one per monitor) is a Taskbar.TaskbarFrame. The hooks report
-// them, and on the next frames their trees are walked for every button and
-// the background (see ScanTaskbars). That also catches buttons that existed
-// before the mod loaded, which the button hooks may not have reported yet.
+// Each monitor's taskbar is a Taskbar.TaskbarFrame. The hooks report them, and
+// the next frames walk their trees for buttons and the background (see
+// ScanTaskbars), which also finds buttons that existed before the mod loaded.
 
 std::vector<winrt::weak_ref<wux::FrameworkElement>> g_frames;
 
@@ -2032,11 +2497,8 @@ void NoteTaskbarFrame(wux::FrameworkElement const& frame) {
 }
 
 // ---- System tray ----
-// The clock and the icons beside it are kept at Windows' usual size, at the
-// bottom of the screen where they normally are, rather than stretched to the
-// full height of the taller taskbar (which made their hover highlights tall
-// and left the clock floating). Their row, "SystemTrayFrameGrid", is given
-// the normal taskbar's height and aligned to the bottom.
+// The tray row ("SystemTrayFrameGrid") is given the stock taskbar height and
+// aligned to the bottom, so it isn't stretched to the taller taskbar.
 
 constexpr double kStockTaskbarHeight = 48;
 
@@ -2077,6 +2539,57 @@ void RestoreTrayRows() {
     g_trayRows->clear();
 }
 
+// ---- Hide system tray ----
+// With "Hide system tray" on, the tray frame is collapsed, and collapsed again
+// if the taskbar changes its visibility.
+
+struct HiddenTray {
+    winrt::weak_ref<wux::FrameworkElement> element;
+    wux::Visibility originalVisibility = wux::Visibility::Visible;
+    int64_t visibilityToken = 0;
+};
+
+std::vector<HiddenTray> g_hiddenTrays;
+
+void HideTray(wux::FrameworkElement const& tray) {
+    if (!g_hideTray) return;
+    g_hiddenTrays.erase(std::remove_if(g_hiddenTrays.begin(), g_hiddenTrays.end(),
+                                       [](HiddenTray& t) { return !t.element.get(); }),
+                        g_hiddenTrays.end());
+    for (auto& t : g_hiddenTrays) {
+        if (t.element.get() == tray) return;
+    }
+    auto& t = g_hiddenTrays.emplace_back();
+    t.element = winrt::make_weak(tray);
+    t.originalVisibility = tray.Visibility();
+    t.visibilityToken = tray.RegisterPropertyChangedCallback(
+        wux::UIElement::VisibilityProperty(),
+        [](wux::DependencyObject const& sender, wux::DependencyProperty const&) {
+            try {
+                if (!g_hideTray) return;
+                if (auto ui = sender.try_as<wux::UIElement>()) {
+                    if (ui.Visibility() != wux::Visibility::Collapsed) {
+                        ui.Visibility(wux::Visibility::Collapsed);
+                    }
+                }
+            } catch (...) {}
+        });
+    tray.Visibility(wux::Visibility::Collapsed);
+}
+
+void RestoreHiddenTrays() {
+    for (auto& t : g_hiddenTrays) {
+        auto el = t.element.get();
+        if (!el) continue;
+        try {
+            el.UnregisterPropertyChangedCallback(wux::UIElement::VisibilityProperty(),
+                                                 t.visibilityToken);
+            el.Visibility(t.originalVisibility);
+        } catch (...) {}
+    }
+    g_hiddenTrays.clear();
+}
+
 // Finds the system tray next to `frame` (it's elsewhere in the same tree).
 void ScanTray(wux::FrameworkElement const& frame) {
     auto root = frame.XamlRoot();
@@ -2086,6 +2599,7 @@ void ScanTray(wux::FrameworkElement const& frame) {
         auto type = winrt::get_class_name(el);
         if (type == L"Taskbar.TaskbarFrame") return false;  // the dock; scanned elsewhere
         if (type == L"SystemTray.SystemTrayFrame") {
+            HideTray(el);
             auto findRow = [](wux::FrameworkElement const& child) {
                 if (child.Name() == L"SystemTrayFrameGrid") FixTrayRow(child);
                 return false;
@@ -2105,6 +2619,7 @@ void ScanTaskbars() {
                    g_frames.end());
     g_buttons->remove_if([](Button const& b) { return !b.element.get(); });
     g_iconImages->remove_if([](IconImage const& i) { return !i.element.get(); });
+    g_badges->remove_if([](OverlayBadge const& b) { return !b.element.get(); });
     g_indicators->remove_if([](Indicator const& i) { return !i.element.get(); });
 
     auto visit = [](wux::FrameworkElement const& el) {
@@ -2128,7 +2643,6 @@ void ScanTaskbars() {
 }
 
 // ---- Pointer (reported by the TaskbarFrame hooks) ----
-
 // The pointer moved over a taskbar. It counts as over the dock when it's
 // within the plate's width, gaps between icons included.
 void OnTaskbarPointerMoved(wux::FrameworkElement const& frame,
@@ -2147,11 +2661,9 @@ void OnTaskbarPointerMoved(wux::FrameworkElement const& frame,
         row = plate->row.get();
         auto panel = plate->panel.get();
         if (row && panel) {
-            // Measured against the dock as it's shown, and never less than its
-            // unmagnified size: an edge that shrinks back past a still pointer
-            // would otherwise grow again under it, making the icons jitter.
-            // Above the dock only counts once it's magnifying, where the
-            // magnified icons are.
+            // Uses the dock's shown size, never less than its unmagnified one,
+            // so an edge shrinking past a still pointer doesn't jitter. Above
+            // the dock only counts while magnified.
             auto point = e.GetCurrentPoint(panel).Position();
             over = point.X >= std::min(plate->left, plate->baseLeft) &&
                    point.X <= std::max(plate->left + plate->width,
@@ -2187,6 +2699,8 @@ void ResetAll() {
     RestoreBackgrounds();
     RestoreHighlights();
     RestoreIconImages();
+    RestoreBadges();
+    RestoreStartButtons();
     for (auto& b : *g_buttons) {
         if (auto el = b.element.get()) {
             try {
@@ -2196,8 +2710,10 @@ void ResetAll() {
             } catch (...) {}
         }
     }
+    RestoreStyledIndicators();
     RestoreIndicators();
     RestoreTrayRows();
+    RestoreHiddenTrays();
     RemoveAppBars();
     ClipTaskbars();  // unclipped, as g_unloading is set
     if (HWND w = g_modWindow.exchange(nullptr)) DestroyWindow(w);
@@ -2209,8 +2725,10 @@ void ResetAll() {
     // g_unloading, and every callback and event handler is removed above.
     g_buttons.reset();
     g_iconImages.reset();
+    g_badges.reset();
     g_plates.reset();
     g_indicators.reset();
+    g_styledIndicators.reset();
     g_trayRows.reset();
 }
 
@@ -2263,9 +2781,8 @@ HWND FindTaskbar() {
 // ---------------------------------------------------------------------------
 // Reaching the taskbar's elements from its own code
 // ---------------------------------------------------------------------------
-// The taskbar's button and frame classes are XAML elements. In a hook on one
-// of their methods, the element is the interface at pThis + 3 pointers (the
-// same as in "Taskbar Labels").
+// In a hook on a button or frame method, the XAML element is the interface at
+// pThis + 3 pointers (as in "Taskbar Labels").
 
 // Set while the mod unloads, so the hooks stop touching the taskbar.
 std::atomic<bool> g_unloading = false;
@@ -2330,10 +2847,10 @@ int WINAPI TaskbarFrame_OnPointerExited_Hook(void* pThis, void* pArgs) {
 }
 
 // ---- Where a button's right-click menu opens (as in "Taskbar Multirow") ----
-// Windows centers a taskbar button's right-click menu (its jump list) on
-// where the taskbar's layout put the button. For File Explorer, moved into its
-// spot by its margins (see LayOutButtons), that's somewhere else entirely. So
-// while the menu is being placed, it's centered on where the button is.
+// The menu is centered on where the taskbar's layout put the button, which is
+// wrong for File Explorer (moved by margins), so it's centered on the button's
+// actual position. It's also lowered to the top of the dock (see
+// PopupShiftDips).
 
 bool g_placingJumpList = false;   // in CTaskListWnd::_ComputeJumpViewPosition
 bool g_hasJumpListButton = false;  // a button's menu is being opened
@@ -2406,16 +2923,22 @@ RECT WINAPI ToRawPixelsInDesktopCoordinates_Hook(wf::Rect const& rect, UINT dpi,
         wf::Rect moved = rect;
         moved.X = g_jumpListButton.X;
         moved.Width = g_jumpListButton.Width;
+        // The menu opens above this rect's top, which is the taskbar window's
+        // top: bring that down to the dock.
+        float shift = 0;
+        try { shift = PopupShiftDips(); } catch (...) {}
+        if (shift > 0 && moved.Height > shift) {
+            moved.Y += shift;
+            moved.Height -= shift;
+        }
         return ToRawPixelsInDesktopCoordinates_Original(moved, dpi, hWnd);
     }
     return ToRawPixelsInDesktopCoordinates_Original(rect, dpi, hWnd);
 }
 
 // ---- Dragging apps to a new spot (as in "Taskbar Multirow") ----
-// File Explorer has its own spot (see LayOutButtons), so dragging it doesn't
-// start: the start, every move and the end of that drag are skipped. Any
-// other app is dragged as usual, and the dock is laid out again once it's
-// dropped.
+// File Explorer has a fixed spot, so dragging it is blocked. Other apps drag
+// as usual, and the dock is laid out again after the drop.
 
 winrt::weak_ref<wux::FrameworkElement> g_blockedDrag;  // File Explorer, while held
 
@@ -2463,10 +2986,9 @@ void WINAPI TaskListButton_OnDragCompletedGesture_Hook(void* pThis) {
 // ---------------------------------------------------------------------------
 // Taskbar height
 // ---------------------------------------------------------------------------
-// The taskbar window's height is decided by Explorer's own code, not by its
-// XAML, so these hook the functions that report and apply it. Same strategy
-// as m417z's "Taskbar height and icon size" mod, trimmed to the height only.
-// Every hook passes straight through when g_taskbarHeight is 0.
+// The taskbar window's height is set by Explorer's own code, so these hook the
+// functions that report and apply it (as in m417z's "Taskbar height and icon
+// size", height only). The hooks pass through when g_taskbarHeight is 0.
 
 std::atomic<bool> g_applyingHeight = false;
 
@@ -2594,18 +3116,15 @@ void WINAPI TaskbarController_UpdateFrameHeight_Hook(void* pThis) {
 // ---------------------------------------------------------------------------
 // Icon resolution
 // ---------------------------------------------------------------------------
-// The taskbar loads each app's icon at the size it thinks icons are shown,
-// normally 24px (times the display scaling), and anything bigger is that
-// small image stretched. TaskbarConfiguration::GetIconHeightInViewPixels is
-// where that size comes from, so it now reports g_iconLoadSize, and the icons
-// load at full magnification. The icon images are still sized by
-// ApplyIconSize, so they show at the dock's icon size.
+// The taskbar loads icons at the size it thinks they're shown (24px times the
+// display scaling). GetIconHeightInViewPixels now reports g_iconLoadSize, so
+// icons load at full magnification; ApplyIconSize still shows them at the
+// dock's icon size.
 //
-// The taskbar also uses the icon height to lay out its buttons (padding,
-// badges, the multi-window look), and some of that code tells the taskbar
-// size settings apart by it, so all of that still gets the stock 24px, the
-// same as before. Start, Task View and other system buttons get the dock's
-// icon size. Adapted from m417z's "Taskbar height and icon size".
+// Button layout code still gets the stock 24px, since it also uses the icon
+// height to tell taskbar sizes apart. Start, Task View and other system
+// buttons get the dock's icon size. Adapted from m417z's "Taskbar height and
+// icon size".
 
 // TaskbarFrame::GetMetrics picks the button width from the icon height.
 thread_local bool g_inTaskbarFrameGetMetrics = false;
@@ -2761,10 +3280,13 @@ VoidMethod_t TrayUI__StuckTrayChange_Original;
 
 using TrayUI__HandleSettingChange_t = void(WINAPI*)(void*, void*, void*, void*, void*);
 TrayUI__HandleSettingChange_t TrayUI__HandleSettingChange_Original;
-void WINAPI TrayUI__HandleSettingChange_Hook(void* pThis, void* p1, void* p2, void* p3,
-                                             void* p4) {
+void WINAPI TrayUI__HandleSettingChange_Hook(void* pThis, void* p1, void* p2, void* p3, void* p4) {
     TrayUI__HandleSettingChange_Original(pThis, p1, p2, p3, p4);
-    if (g_applyingHeight) TrayUI__StuckTrayChange_Original(pThis);
+    if (g_applyingHeight) {
+        TrayUI__StuckTrayChange_Original(pThis);
+    } else if (!g_unloading) {
+        ScheduleOverWindows(true);  // re-read the user's autohide setting
+    }
 }
 
 void ApplyTaskbarHeight() {
@@ -2782,19 +3304,17 @@ void ApplyTaskbarHeight() {
     }
 }
 
-// ---- Magnify over windows ----
+// ---- Keeping the dock over windows ----
 // Maximized windows reach down to the top of the dock, and magnified icons
-// rise over them, as on a Mac. Things Windows already does make that happen,
-// managed by Explorer itself:
-// - "Automatically hide the taskbar" stops Windows from keeping any space
-//   free for the taskbar. It's turned on (and back off afterwards, if it was
-//   off), and the taskbar is kept from actually hiding (as in "Taskbar
-//   auto-hide when maximized").
-// - An app bar, the way docked toolbars keep a strip of the screen free,
-//   with just the dock's height, on each screen with a taskbar.
-// - A window region: the taskbar window, which is taller than the dock to
-//   leave room for magnified icons, is clipped to that strip while no icon is
-//   magnified, so it doesn't cover the bottom of maximized windows.
+// rise over them. Three things make that work:
+// - Windows' "Automatically hide the taskbar" is turned on while the mod is
+//   loaded, so Windows keeps no space free for the taskbar. The taskbar is
+//   kept from actually hiding unless "Auto-hide the dock" is on.
+// - An app bar keeps a strip the height of the dock free on each screen.
+// - The taskbar window, taller than the dock, is clipped to that strip while
+//   no icon is magnified.
+// With "Auto-hide the dock" on, the app bar and clip are removed, and the
+// taskbar hides by itself.
 
 // TrayUI::_HandleTrayPrivateSettingMessage: gets or sets auto-hide.
 constexpr UINT kTraySettingMessage = WM_USER + 0x1CA;
@@ -2802,14 +3322,12 @@ constexpr WPARAM kTraySettingAutoHideGet = 3;
 constexpr WPARAM kTraySettingAutoHideSet = 4;
 constexpr UINT_PTR kTrayHideTimer = 2;
 
-// Whether the mod has turned auto-hide on, and whether it was on before,
-// to put it back as it was. Saved, so that's still done after Explorer
-// restarts unexpectedly.
+// Whether the mod forced Windows' auto-hide on, and its value before. Saved so
+// it can be restored after Explorer restarts.
 bool g_managingAutoHide = false;
 bool g_autoHideBefore = false;
 
-// Auto-hide is a per-user setting, and the mod's storage may be shared by
-// every user of the PC, so what's saved is per user.
+// Saved per user, since the mod's storage can be shared between users.
 std::wstring UserValueName(PCWSTR name) {
     static std::wstring sid = [] {
         std::wstring result;
@@ -2829,22 +3347,44 @@ std::wstring UserValueName(PCWSTR name) {
     return std::wstring(name) + L"_" + sid;
 }
 
-bool KeepTaskbarShown() { return g_magnifyOverWindows && !g_unloading; }
+// True when the dock stays put with a strip kept free under it (not auto-hide).
+bool KeepTaskbarShown() { return !g_autoHideDock && !g_unloading; }
+
+// Windows' auto-hide stays on while the mod is loaded.
+bool WantAutoHideOn() { return !g_unloading; }
 
 void ApplyAutoHide() {
     HWND tb = FindTaskbar();
     if (!tb) return;
-    if (KeepTaskbarShown()) {
+
+    bool actual = SendMessage(tb, kTraySettingMessage, kTraySettingAutoHideGet, 0) != 0;
+
+    // Saved state is stale (we forced it on, but it's off): drop it.
+    if (g_managingAutoHide && !actual && !g_unloading) {
+        g_managingAutoHide = false;
+    }
+    // Not forced: Windows' value is the user's own.
+    if (!g_managingAutoHide) {
+        g_autoHideBefore = actual;
+    }
+
+    if (WantAutoHideOn()) {
         if (!g_managingAutoHide) {
-            g_autoHideBefore = SendMessage(tb, kTraySettingMessage, kTraySettingAutoHideGet, 0);
             g_managingAutoHide = true;
+            // Save the original value first, in case Explorer crashes.
+            Wh_SetIntValue(UserValueName(L"autoHideBefore").c_str(), g_autoHideBefore);
+            Wh_SetIntValue(UserValueName(L"managingAutoHide").c_str(), 1);
         }
         SendMessage(tb, kTraySettingMessage, kTraySettingAutoHideSet, TRUE);
+        // Start Windows' hide timer; it only hides if the pointer is away.
+        if (g_autoHideDock) SetTimer(tb, kTrayHideTimer, 100, nullptr);
     } else if (g_managingAutoHide) {
         SendMessage(tb, kTraySettingMessage, kTraySettingAutoHideSet, g_autoHideBefore);
         g_managingAutoHide = false;
     }
-    Wh_Log(L"[magnify over windows] %s", KeepTaskbarShown() ? L"on" : L"off");
+
+    Wh_Log(L"[auto-hide] dock auto-hide: %d, keep shown: %d, forced on: %d",
+       g_autoHideDock, KeepTaskbarShown(), g_managingAutoHide);
     Wh_SetIntValue(UserValueName(L"managingAutoHide").c_str(), g_managingAutoHide);
     Wh_SetIntValue(UserValueName(L"autoHideBefore").c_str(), g_autoHideBefore);
 }
@@ -2882,6 +3422,149 @@ void ForEachTaskbarWindow(F f) {
             return TRUE;
         },
         (LPARAM)&f);
+}
+
+// ===========================================================================
+// Popups above the dock
+// ===========================================================================
+// Hover previews (A) and hover name tooltips (B) are placed above the top of
+// the tall taskbar window. They're moved down to just above the dock, or the
+// biggest magnified icon (see "Where popups above the dock go"). Both can be
+// windows, so their window position hooks are shared (C).
+
+// ---------------------------------------------------------------------------
+// A. Hover previews (thumbnails)
+// ---------------------------------------------------------------------------
+
+// A1. The XAML flyout (current Windows 11 builds).
+// The preview is a XAML FlyoutFrame in the full-screen island window, so
+// moving windows doesn't work. FlyoutFrame::UpdateFlyoutPosition converts its
+// position with MapWindowPoints, so a downward offset is added to that point
+// while it runs (as in "Taskbar on top").
+//
+// How far (DIPs) the stock preview's bottom edge sits above the taskbar
+// window's top. Raise to move previews down, lower to move them up.
+constexpr float kFlyoutStockGap = 12;
+
+thread_local bool g_inUpdateFlyoutPosition = false;
+
+VoidMethod_t FlyoutFrame_UpdateFlyoutPosition_Original;
+void WINAPI FlyoutFrame_UpdateFlyoutPosition_Hook(void* pThis) {
+    bool previous = g_inUpdateFlyoutPosition;
+    g_inUpdateFlyoutPosition = true;
+    FlyoutFrame_UpdateFlyoutPosition_Original(pThis);
+    g_inUpdateFlyoutPosition = previous;
+}
+
+using MapWindowPoints_t = decltype(&MapWindowPoints);
+MapWindowPoints_t MapWindowPoints_Original;
+int WINAPI MapWindowPoints_Hook(HWND hWndFrom, HWND hWndTo, LPPOINT lpPoints, UINT cPoints) {
+    int ret = MapWindowPoints_Original(hWndFrom, hWndTo, lpPoints, cPoints);
+    if (!g_inUpdateFlyoutPosition || g_unloading || !lpPoints || cPoints == 0) return ret;
+
+    try {
+        HWND tb = FindTaskbar();
+        UINT dpi = tb ? GetDpiForWindow(tb) : 96;
+        float shiftDips = PopupShiftDips() + kFlyoutStockGap;
+        int shift = MulDiv((int)std::ceil(shiftDips), dpi, 96);
+        for (UINT i = 0; i < cPoints; i++) lpPoints[i].y += shift;
+    } catch (...) {}
+    return ret;
+}
+
+// A2. Previews that are windows of their own (builds where the preview isn't
+// a XAML flyout). Moved by the window position hooks in section C.
+bool IsHoverPreviewWindow(std::wstring const& lowerClass) {
+    return lowerClass.find(L"thumbnail") != std::wstring::npos ||
+           lowerClass.find(L"tasklist") != std::wstring::npos;
+}
+
+// ---------------------------------------------------------------------------
+// B. Hover name tooltips
+// ---------------------------------------------------------------------------
+// The name above an icon is a XAML ToolTip shown in a
+// "Xaml_WindowedPopupClass" window. PlaceTooltip centers it on the icon; the
+// window position hooks (C) move it down, which is what this class check is
+// for. Only windows whose bottom edge is just above the taskbar window's top
+// are moved (see WindowPopupShiftPx).
+bool IsNameTooltipWindow(std::wstring const& lowerClass) {
+    return lowerClass.find(L"tooltip") != std::wstring::npos ||
+           lowerClass.find(L"windowedpopup") != std::wstring::npos;
+}
+
+// ---------------------------------------------------------------------------
+// C. Window position hooks (hover previews A2, and name tooltips B)
+// ---------------------------------------------------------------------------
+// Both are placed with SetWindowPos or DeferWindowPos. Other window classes
+// are left alone.
+using SetWindowPos_t = decltype(&SetWindowPos);
+SetWindowPos_t SetWindowPos_Original;
+
+// The last popup window moved, and where it was put, so that the same
+// position being set again isn't shifted a second time.
+std::atomic<HWND> g_lastShiftedWnd = nullptr;
+std::atomic<int> g_lastShiftedY = INT_MIN;
+
+// How far down (in pixels) a popup being placed at this rect should move: 0
+// unless it's a hover preview or name tooltip whose bottom edge is near the
+// top of a taskbar on the same monitor.
+int WindowPopupShiftPx(HWND hWnd, int x, int y, int cx, int cy) {
+    WCHAR cls[64];
+    if (!GetClassName(hWnd, cls, ARRAYSIZE(cls))) return 0;
+    std::wstring lowerClass(cls);
+    std::transform(lowerClass.begin(), lowerClass.end(), lowerClass.begin(), ::towlower);
+    if (!IsHoverPreviewWindow(lowerClass) && !IsNameTooltipWindow(lowerClass)) return 0;
+    if (hWnd == g_lastShiftedWnd.load() && y == g_lastShiftedY.load()) return 0;
+
+    RECT r{x, y, x + cx, y + cy};
+    HMONITOR monitor = MonitorFromRect(&r, MONITOR_DEFAULTTONEAREST);
+    int shift = 0;
+    ForEachTaskbarWindow([&](HWND tb) {
+        if (GetWindowThreadProcessId(tb, nullptr) != GetCurrentThreadId()) return;
+        if (MonitorFromWindow(tb, MONITOR_DEFAULTTONEAREST) != monitor) return;
+        RECT w;
+        if (!GetWindowRect(tb, &w)) return;
+        UINT dpi = GetDpiForWindow(tb);
+        int bottom = y + cy;
+        // Placed just above the taskbar window's top, give or take its margin.
+        if (bottom < w.top - MulDiv(80, dpi, 96) || bottom > w.top + MulDiv(12, dpi, 96)) {
+            return;
+        }
+        float magTop = g_dockBottomGap + (g_dockHeight - g_iconSize) / 2 + g_scale * g_iconSize;
+        float insetDips = std::max(DockTopInset(), g_pointerOver ? magTop : 0.0f) + kPreviewGap;
+        int target = (int)w.bottom - MulDiv((int)std::ceil(insetDips), dpi, 96);
+        shift = std::max(0, target - bottom);
+    });
+    return shift;
+}
+
+BOOL WINAPI SetWindowPos_Hook(HWND hWnd, HWND after, int X, int Y, int cx, int cy, UINT flags) {
+    if (!g_unloading && !(flags & SWP_NOMOVE)) {
+        int shift = 0;
+        try { shift = WindowPopupShiftPx(hWnd, X, Y, cx, cy); } catch (...) {}
+        if (shift > 0) {
+            g_lastShiftedWnd.store(hWnd);
+            Y += shift;
+            g_lastShiftedY.store(Y);
+        }
+    }
+    return SetWindowPos_Original(hWnd, after, X, Y, cx, cy, flags);
+}
+
+using DeferWindowPos_t = decltype(&DeferWindowPos);
+DeferWindowPos_t DeferWindowPos_Original;
+HDWP WINAPI DeferWindowPos_Hook(HDWP hdwp, HWND hWnd, HWND after, int X, int Y, int cx, int cy,
+                                UINT flags) {
+    if (!g_unloading && !(flags & SWP_NOMOVE)) {
+        int shift = 0;
+        try { shift = WindowPopupShiftPx(hWnd, X, Y, cx, cy); } catch (...) {}
+        if (shift > 0) {
+            g_lastShiftedWnd.store(hWnd);
+            Y += shift;
+            g_lastShiftedY.store(Y);
+        }
+    }
+    return DeferWindowPos_Original(hdwp, hWnd, after, X, Y, cx, cy, flags);
 }
 
 // The strip kept free at the bottom of the screen, in pixels: the dock and
@@ -2993,9 +3676,9 @@ void UpdateOverWindows() {
     ClipTaskbars();
 }
 
-// Applies "Magnify over windows" as it's now set. Also done whenever a
-// taskbar appears (see NoteTaskbarFrame), since the mod is often loaded
-// before there is one.
+// Applies "Magnify over windows" and "Auto-hide the dock" as they're now
+// set. Also done whenever a taskbar appears (see NoteTaskbarFrame), since the
+// mod is often loaded before there is one.
 void ApplyMagnifyOverWindows() {
     if (HWND tb = FindTaskbar()) {
         RunFromWindowThread(tb, [](void*) { ScheduleOverWindows(true); }, nullptr);
@@ -3158,6 +3841,14 @@ bool HookTaskbarViewSymbols(HMODULE module, bool withTray) {
             {LR"(public: virtual int __cdecl winrt::impl::produce<struct winrt::Taskbar::implementation::TaskbarFrame,struct winrt::Windows::UI::Xaml::Controls::IControlOverrides>::OnPointerExited(void *))"},
             &TaskbarFrame_OnPointerExited_Original,
             TaskbarFrame_OnPointerExited_Hook,
+            true,
+        },
+
+        // Hover previews (thumbnails): where the XAML flyout is placed
+        {
+            {LR"(private: void __cdecl winrt::Taskbar::implementation::FlyoutFrame::UpdateFlyoutPosition(void))"},
+            &FlyoutFrame_UpdateFlyoutPosition_Original,
+            FlyoutFrame_UpdateFlyoutPosition_Hook,
             true,
         },
 
@@ -3349,17 +4040,23 @@ HMODULE WINAPI LoadLibraryExW_Hook(LPCWSTR name, HANDLE file, DWORD flags) {
 
 void LoadSettings() {
     g_dockSize = std::clamp(Wh_GetIntSetting(L"dock.size"), 0, 100);
+    g_iconSpacingSetting = std::clamp(Wh_GetIntSetting(L"dock.iconSpacing"), 0, 50);
     auto color = WindhawkUtils::StringSetting::make(L"dock.color");
     g_dockTheme = wcscmp(color, L"dark") == 0 ? 1 : wcscmp(color, L"light") == 0 ? 2 : 0;
+    auto style = WindhawkUtils::StringSetting::make(L"dock.style");
+    g_dockStyle = wcscmp(style, L"highlights") == 0 ? 1 : 0;
     g_dockTint = std::clamp(Wh_GetIntSetting(L"dock.tint"), 0, 100);
     g_dockBlur = std::clamp(Wh_GetIntSetting(L"dock.blur"), 0, 100);
+    g_dockBottomGapSetting = std::clamp(Wh_GetIntSetting(L"dock.bottomGap"), 0, 100);
     // Amount 0-100 -> the icon grows to 1.0x-2.0x.
     g_scale = 1.0f + std::clamp(Wh_GetIntSetting(L"magnification.amount"), 0, 100) / 100.0f;
     g_magnificationRange = std::clamp(Wh_GetIntSetting(L"magnification.range"), 0, 100);
     g_animationMs = std::clamp(Wh_GetIntSetting(L"magnification.smoothing"), 0, 1000);
-    g_magnifyOverWindows = Wh_GetIntSetting(L"magnification.overWindows");
+    g_autoHideDock = Wh_GetIntSetting(L"behavior.autoHide");
     g_appsDivider = Wh_GetIntSetting(L"items.appsDivider");
     g_showTrash = Wh_GetIntSetting(L"items.recycleBin");
+    g_showStart = Wh_GetIntSetting(L"items.startButton");
+    g_hideTray = Wh_GetIntSetting(L"tray.hideTray");
 
     ComputeSizes();
     Wh_Log(L"Sizes: icon %.0f (loaded at %.0f), dock %.0f, taskbar %d, button margin %.1f",
@@ -3381,6 +4078,14 @@ BOOL Wh_ModInit() {
                                            &LoadLibraryExW_Original);
         }
     }
+
+    // Hover name tooltips, and hover previews that are windows: move them down
+    // to the dock when Explorer places them.
+    WindhawkUtils::SetFunctionHook(SetWindowPos, SetWindowPos_Hook, &SetWindowPos_Original);
+    WindhawkUtils::SetFunctionHook(DeferWindowPos, DeferWindowPos_Hook, &DeferWindowPos_Original);
+    // Hover previews that are a XAML flyout: moved while their position is
+    // worked out (see FlyoutFrame_UpdateFlyoutPosition_Hook).
+    WindhawkUtils::SetFunctionHook(MapWindowPoints, MapWindowPoints_Hook, &MapWindowPoints_Original);
     return TRUE;
 }
 
@@ -3424,15 +4129,16 @@ void Wh_ModBeforeUninit() {
 void Wh_ModSettingsChanged() {
     int oldTaskbarHeight = g_taskbarHeight;
     float oldIconLoadSize = g_iconLoadSize;
-    // The frame loop and the hooks read the settings on the taskbar thread, so
-    // they're loaded there too. Scale settings are read every frame; the
-    // plates (with the Recycle Bin) are made again on the next frame, and the
-    // spacing and icon sizes need a refresh.
+    // Settings are loaded on the taskbar thread, where the frame loop and hooks
+    // read them. Plates (with the Recycle Bin) are rebuilt on the next frame,
+    // and spacing and icon sizes are refreshed.
     HWND tb = FindTaskbar();
     bool ran = tb && RunFromWindowThread(tb, [](void*) {
             LoadSettings();
             try { RemovePlates(); } catch (...) {}
             try { StopTrash(); } catch (...) {}
+            RestoreStartButtons();
+            RestoreHiddenTrays();
             for (auto& b : *g_buttons) {
                 if (auto el = b.element.get()) {
                     try {
@@ -3445,6 +4151,13 @@ void Wh_ModSettingsChanged() {
             for (auto& i : *g_iconImages) {
                 if (auto el = i.element.get()) {
                     try { ApplyIconSize(el); } catch (...) {}
+                }
+            }
+            for (auto& b : *g_badges) {
+                auto el = b.element.get();
+                auto panel = b.panel.get();
+                if (el && panel) {
+                    try { ApplyBadgePosition(el, panel); } catch (...) {}
                 }
             }
             g_row.clear();  // rebuilt with the new spacing on next hover
