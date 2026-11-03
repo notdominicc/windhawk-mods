@@ -561,6 +561,15 @@ bool g_pointerOver = false;
 bool g_dockExpanded = false;  // icons magnified or about to be (see ClipTaskbars)
 float g_pointerX = 0;
 
+// The pointer is over the Recycle Bin, and where its center is (DIPs, in the
+// taskbar's XAML content). Used to place its name tooltip (see MoveTrashTooltip).
+std::atomic<bool> g_trashHovered = false;
+std::atomic<float> g_trashCenterDips = 0;
+
+// The Recycle Bin's tooltip is open. It can outlive the pointer being over the
+// icon, and must keep being placed above the dock until it closes.
+std::atomic<bool> g_trashTipOpen = false;
+
 // Which end of the dock stays put as it grows and shrinks, and the most it
 // has grown during this hover (see OnFrame).
 bool g_anchorLeftEnd = true;
@@ -584,6 +593,13 @@ float DockTopInset() {
 
 float PopupShiftDips() {
     return std::max(0.0f, (float)g_taskbarHeight - (DockTopInset() + kPreviewGap));
+}
+
+// How far above the bottom of the screen popups sit, in DIPs: just above the
+// dock, or above the biggest magnified icon while the pointer is on the dock.
+float PopupInsetDips() {
+    float magTop = g_dockBottomGap + (g_dockHeight - g_iconSize) / 2 + g_scale * g_iconSize;
+    return std::max(DockTopInset(), g_pointerOver ? magTop : 0.0f) + kPreviewGap;
 }
 
 // ---- Hidden taskbar background ----
@@ -1041,11 +1057,14 @@ struct Plate {
     wuxc::Border divider{nullptr};
     wux::UIElement::Tapped_revoker trashTapped;
     wux::UIElement::RightTapped_revoker trashRightTapped;
+    wux::UIElement::PointerEntered_revoker trashEntered;
+    wux::UIElement::PointerExited_revoker trashExited;
     wux::UIElement::DragEnter_revoker trashDragEnter;
     wux::UIElement::DragOver_revoker trashDragOver;
     wux::UIElement::Drop_revoker trashDrop;
     winrt::weak_ref<wux::FrameworkElement> beforeTrash;  // the last button
     float trashCenter = 0;  // in the row's coordinates
+    float trashShift = 0;  // sideways shift from magnification, for its tooltip
     int trashState = -2;    // icon shown: -1 unknown, 0 empty, 1 full
     // The divider between Start, Task View, File Explorer and the other apps,
     // in the space reserved after the button before it (see AppsDividerButton).
@@ -1246,7 +1265,17 @@ void AddTrash(Plate& p, wuxc::Panel const& panel, wux::UIElement const& row) {
     trash.Height(g_iconSize * kTrashIconScale);
     // A transparent background makes the whole square clickable.
     trash.Background(wuxm::SolidColorBrush(winrt::Windows::UI::Color{0, 0, 0, 0}));
-    wuxc::ToolTipService::SetToolTip(trash, winrt::box_value(L"Recycle Bin"));
+    wuxc::ToolTip tip;
+    tip.Content(winrt::box_value(L"Recycle Bin"));
+    tip.Placement(wuxc::Primitives::PlacementMode::Top);
+    tip.Opened([](wf::IInspectable const&, wux::RoutedEventArgs const&) {
+        g_trashTipOpen = true;
+    });
+    tip.Closed([](wf::IInspectable const&, wux::RoutedEventArgs const&) {
+        g_trashTipOpen = false;
+    });
+    wuxc::ToolTipService::SetToolTip(trash, tip);
+    wuxc::ToolTipService::SetPlacement(trash, wuxc::Primitives::PlacementMode::Top);
     wuxc::Image image;
     image.Stretch(wuxm::Stretch::Uniform);
     trash.Children().Append(image);
@@ -1502,6 +1531,14 @@ void MeasurePlate(Plate& p) {
         float trashSize = g_iconSize * kTrashIconScale;
         p.trash.Margin({origin.X + p.trashCenter - trashSize / 2, centerY - trashSize / 2, 0, 0});
         p.trash.Visibility(wux::Visibility::Visible);
+        // Start the tooltip at the top of the taskbar window, like the other
+        // buttons' tooltips, so the same popup shift applies to it.
+        try {
+            if (auto tip = wuxc::ToolTipService::GetToolTip(p.trash).try_as<wuxc::ToolTip>()) {
+                double v = -(double)(centerY - trashSize / 2);
+                if (std::fabs(tip.VerticalOffset() - v) > 0.25) tip.VerticalOffset(v);
+            }
+        } catch (...) {}
         placeDivider(p.divider, last);
         UpdateTrashIcons();
     }
@@ -1545,6 +1582,10 @@ void RemovePlates() {
         }
         p.trashTapped.revoke();
         p.trashRightTapped.revoke();
+        p.trashEntered.revoke();
+        p.trashExited.revoke();
+        g_trashHovered = false;
+        g_trashTipOpen = false;
         p.trashDragEnter.revoke();
         p.trashDragOver.revoke();
         p.trashDrop.revoke();
@@ -1765,16 +1806,42 @@ void OnTrashDrop(wux::DragEventArgs const& e) {
     });
 }
 
+// Where the Recycle Bin's center is, for its name tooltip: its layout position
+// (which ignores the magnification transform) plus the sideways shift.
+void UpdateTrashTooltipCenter(Plate& p) {
+    if (!p.trash) return;
+    auto root = p.trash.XamlRoot();
+    auto content = root ? root.Content() : nullptr;
+    if (!content) return;
+    auto b = p.trash.TransformToVisual(content).TransformBounds(
+        {0, 0, (float)p.trash.ActualWidth(), (float)p.trash.ActualHeight()});
+    g_trashCenterDips = b.X + b.Width / 2 + p.trashShift;
+}
+
 void HookUpTrash(Plate& p) {
     p.trash.AllowDrop(true);
+    Plate* pp = &p;  // the list's elements don't move; the revokers go with the plate
+    p.trashEntered = p.trash.PointerEntered(
+        winrt::auto_revoke, [pp](wf::IInspectable const&, wuxi::PointerRoutedEventArgs const&) {
+            try {
+                UpdateTrashTooltipCenter(*pp);
+                g_trashHovered = true;
+            } catch (...) {}
+        });
+    p.trashExited = p.trash.PointerExited(
+        winrt::auto_revoke,
+        [](wf::IInspectable const&, wuxi::PointerRoutedEventArgs const&) { g_trashHovered = false; });
     p.trashTapped = p.trash.Tapped(
         winrt::auto_revoke, [](wf::IInspectable const&, wuxi::TappedRoutedEventArgs const& e) {
+            g_trashHovered = false;
             e.Handled(true);
             OpenRecycleBin();
         });
     p.trashRightTapped = p.trash.RightTapped(
         winrt::auto_revoke,
         [](wf::IInspectable const& sender, wuxi::RightTappedRoutedEventArgs const& e) {
+            g_trashHovered = false;  // so the menu's popup isn't moved like a tooltip
+            g_trashTipOpen = false;
             e.Handled(true);
             try { ShowTrashMenu(sender.as<wux::FrameworkElement>()); } catch (...) {
                 Wh_Log(L"[trash] menu failed: 0x%08X", winrt::to_hresult());
@@ -1804,6 +1871,10 @@ void SetTrashScale(Plate& p, float s, float tx, float dividerTx) {
     visual.Scale({s, s, 1});
     wuxh::ElementCompositionPreview::SetIsTranslationEnabled(p.trash, true);
     visual.Properties().InsertVector3(L"Translation", {tx, 0, 0});
+    p.trashShift = tx;
+    if (g_trashHovered) {
+        try { UpdateTrashTooltipCenter(p); } catch (...) {}
+    }
     auto divider = wuxh::ElementCompositionPreview::GetElementVisual(p.divider);
     wuxh::ElementCompositionPreview::SetIsTranslationEnabled(p.divider, true);
     divider.Properties().InsertVector3(L"Translation", {dividerTx, 0, 0});
@@ -1817,57 +1888,47 @@ void SetTrashScale(Plate& p, float s, float tx, float dividerTx) {
 struct Indicator {
     winrt::weak_ref<wux::FrameworkElement> element;
     winrt::weak_ref<wux::FrameworkElement> button;
-    winrt::weak_ref<wux::FrameworkElement> dot;  // our replacement dot, if any
     wux::FrameworkElement::SizeChanged_revoker sizeChanged;
-    wux::FrameworkElement::SizeChanged_revoker dotSizeChanged;
 };
 
 [[clang::no_destroy]] std::optional<std::list<Indicator>> g_indicators{std::in_place};
 
 void PlaceIndicator(wux::FrameworkElement const& button, float s) {
-    wux::FrameworkElement el{nullptr};
-    for (auto& i : *g_indicators) {
-        if (i.button.get() == button) {
-            el = i.dot.get();
-            if (!el) el = i.element.get();
-            break;
-        }
-    }
-    if (!el) return;
-    auto visual = wuxh::ElementCompositionPreview::GetElementVisual(el);
-    wuxh::ElementCompositionPreview::SetIsTranslationEnabled(el, true);
-
-    auto reset = [&] {
-        visual.Scale({1, 1, 1});
-        visual.Properties().InsertVector3(L"Translation", {0, 0, 0});
-    };
     Plate* p = GetRowPlate(wuxm::VisualTreeHelper::GetParent(button));
-    if (!p || s <= 0) return reset();
+    for (auto& i : *g_indicators) {
+        if (i.button.get() != button) continue;
+        wux::FrameworkElement el = i.element.get();
+        if (!el) continue;
 
-    // The indicator's vertical center within the button, as laid out.
-    float w = (float)el.ActualWidth(), h = (float)el.ActualHeight();
-    float centerY = h / 2;
-    wux::DependencyObject current = el;
-    while (current && current != button) {
-        if (auto ui = current.try_as<wux::UIElement>()) centerY += ui.ActualOffset().y;
-        current = wuxm::VisualTreeHelper::GetParent(current);
+        auto visual = wuxh::ElementCompositionPreview::GetElementVisual(el);
+        wuxh::ElementCompositionPreview::SetIsTranslationEnabled(el, true);
+
+        auto reset = [&] {
+            visual.Scale({1, 1, 1});
+            visual.Properties().InsertVector3(L"Translation", {0, 0, 0});
+        };
+        if (!p || s <= 0) { reset(); continue; }
+
+        float w = (float)el.ActualWidth(), h = (float)el.ActualHeight();
+        float centerY = h / 2;
+        wux::DependencyObject current = el;
+        while (current && current != button) {
+            if (auto ui = current.try_as<wux::UIElement>()) centerY += ui.ActualOffset().y;
+            current = wuxm::VisualTreeHelper::GetParent(current);
+        }
+        if (!current) { reset(); continue; }
+
+        auto slot = wuxc::Primitives::LayoutInformation::GetLayoutSlot(button);
+        float buttonTop = slot.Y + (float)button.Margin().Top;
+        float inset = std::max(2.0f, std::round(g_iconSize / 10));
+        float targetY = p->dockBottom - buttonTop - inset - h / 2;
+
+        float pivotY = ButtonPivotY(button);
+        float ty = (targetY - p->offsetY - pivotY) / s + pivotY - centerY;
+        visual.CenterPoint({w / 2, h / 2, 0});
+        visual.Scale({1 / s, 1 / s, 1});
+        visual.Properties().InsertVector3(L"Translation", {0, ty, 0});
     }
-    if (!current) return reset();  // not inside this button after all
-
-    // Where it should be: just above the dock's bottom edge.
-    auto slot = wuxc::Primitives::LayoutInformation::GetLayoutSlot(button);
-    float buttonTop = slot.Y + (float)button.Margin().Top;
-    float inset = std::max(2.0f, std::round(g_iconSize / 10));
-    float targetY = p->dockBottom - buttonTop - inset - h / 2;
-
-    // The button scales by s around its pivot, then moves down by offsetY.
-    // Scale the indicator by 1/s around its own center to cancel the growth,
-    // and move it so that after the button's transform it lands on targetY.
-    float pivotY = ButtonPivotY(button);
-    float ty = (targetY - p->offsetY - pivotY) / s + pivotY - centerY;
-    visual.CenterPoint({w / 2, h / 2, 0});
-    visual.Scale({1 / s, 1 / s, 1});
-    visual.Properties().InsertVector3(L"Translation", {0, ty, 0});
 }
 
 void TrackIndicator(wux::FrameworkElement const& el, wux::FrameworkElement const& button) {
@@ -1890,7 +1951,6 @@ void TrackIndicator(wux::FrameworkElement const& el, wux::FrameworkElement const
 void RestoreIndicators() {
     for (auto& i : *g_indicators) {
         i.sizeChanged.revoke();
-        i.dotSizeChanged.revoke();
         if (auto el = i.element.get()) {
             try {
                 auto visual = wuxh::ElementCompositionPreview::GetElementVisual(el);
@@ -1903,47 +1963,45 @@ void RestoreIndicators() {
     g_indicators->clear();
 }
 
-// ---- Running indicator style (dots, from Taskbar Styler) ----
-// The taskbar's indicator is clipped to nothing and a 4px dot is drawn instead:
-// light (#D6D6D6) for the focused app, dim (#8A8A8A) for other open apps. The
-// dot is added from the per-frame scan, not from the taskbar's hooks.
+// ---- Running indicator style (dots) ----
+// The taskbar's own RunningIndicator is restyled into a dot instead of being
+// hidden and replaced. The states only set Fill, so the size and shape are set
+// directly on the element. This changes no part of the tree, so it can be done
+// from the taskbar's own hooks, before the indicator is first drawn.
 
-bool g_scanningInFrame = false;
+constexpr double kDotSize = 4;
+const winrt::Windows::UI::Color kDotActive{255, 0xD6, 0xD6, 0xD6};
+const winrt::Windows::UI::Color kDotInactive{255, 0x8A, 0x8A, 0x8A};
+
+struct SavedSetter {
+    wux::Setter setter{nullptr};
+    wf::IInspectable value{nullptr};
+};
 
 struct StyledIndicator {
-    winrt::weak_ref<wux::FrameworkElement> element;  // the taskbar's own indicator
-    wuxs::Ellipse dot{nullptr};
-    winrt::weak_ref<wuxc::Panel> panel;
-    wux::VisualStateGroup group{nullptr};
-    winrt::event_token stateToken{};
-    wf::IInspectable originalClip{nullptr};
-    int64_t clipToken = 0;
+    winrt::weak_ref<wux::FrameworkElement> element;
+    wf::IInspectable originalWidth{nullptr}, originalHeight{nullptr};
+    wf::IInspectable originalRadiusX{nullptr}, originalRadiusY{nullptr};
+    wf::IInspectable originalFill{nullptr};
+    int64_t widthToken = 0, heightToken = 0;
+    std::vector<SavedSetter> setters;
 };
 
 [[clang::no_destroy]] std::optional<std::list<StyledIndicator>> g_styledIndicators{std::in_place};
 
-void UpdateDot(StyledIndicator& si) {
-    using winrt::Windows::UI::Color;
-    auto state = si.group.CurrentState();
-    winrt::hstring name = state ? state.Name() : winrt::hstring{};
-    if (name == L"ActiveRunningIndicator") {
-        si.dot.Fill(wuxm::SolidColorBrush(Color{255, 0xD6, 0xD6, 0xD6}));
-        si.dot.Visibility(wux::Visibility::Visible);
-    } else if (name == L"InactiveRunningIndicator") {
-        si.dot.Fill(wuxm::SolidColorBrush(Color{255, 0x8A, 0x8A, 0x8A}));
-        si.dot.Visibility(wux::Visibility::Visible);
-    } else {
-        si.dot.Visibility(wux::Visibility::Collapsed);
+void ApplyDotShape(wux::FrameworkElement const& el) {
+    if (el.Width() != kDotSize) el.Width(kDotSize);
+    if (el.Height() != kDotSize) el.Height(kDotSize);
+    if (auto r = el.try_as<wuxs::Rectangle>()) {
+        if (r.RadiusX() != kDotSize / 2) r.RadiusX(kDotSize / 2);
+        if (r.RadiusY() != kDotSize / 2) r.RadiusY(kDotSize / 2);
     }
 }
 
 void StyleIndicator(wux::FrameworkElement const& el, wux::FrameworkElement const& button) {
-    if (!g_scanningInFrame) return;  // this changes the tree: frame scan only
     for (auto& s : *g_styledIndicators) {
         if (s.element.get() == el) return;
     }
-    auto panel = wuxm::VisualTreeHelper::GetParent(el).try_as<wuxc::Panel>();
-    if (!panel) return;
 
     // The visual state group lives on the button's template root.
     wux::VisualStateGroup group{nullptr};
@@ -1962,111 +2020,77 @@ void StyleIndicator(wux::FrameworkElement const& el, wux::FrameworkElement const
         if (current == button) break;
         current = wuxm::VisualTreeHelper::GetParent(current);
     }
-    if (!group) return;
-
-    // Our dot: same place in the grid as the taskbar's indicator.
-    wuxs::Ellipse dot;
-    dot.Width(4);
-    dot.Height(4);
-    dot.IsHitTestVisible(false);
-    dot.HorizontalAlignment(el.HorizontalAlignment());
-    dot.VerticalAlignment(el.VerticalAlignment());
-    dot.Margin(el.Margin());
-    dot.Visibility(wux::Visibility::Collapsed);
-    if (panel.try_as<wuxc::Grid>()) {
-        wuxc::Grid::SetRow(dot, wuxc::Grid::GetRow(el));
-        wuxc::Grid::SetColumn(dot, wuxc::Grid::GetColumn(el));
-        wuxc::Grid::SetRowSpan(dot, wuxc::Grid::GetRowSpan(el));
-        wuxc::Grid::SetColumnSpan(dot, wuxc::Grid::GetColumnSpan(el));
-    }
-    uint32_t index = 0;
-    if (panel.Children().IndexOf(el, index)) panel.Children().InsertAt(index + 1, dot);
-    else panel.Children().Append(dot);
 
     auto& si = g_styledIndicators->emplace_back();
     si.element = winrt::make_weak(el);
-    si.dot = dot;
-    si.panel = winrt::make_weak(panel);
-    si.group = group;
-    si.originalClip = el.ReadLocalValue(wux::UIElement::ClipProperty());
+    si.originalWidth = el.ReadLocalValue(wux::FrameworkElement::WidthProperty());
+    si.originalHeight = el.ReadLocalValue(wux::FrameworkElement::HeightProperty());
+    si.originalRadiusX = el.ReadLocalValue(wuxs::Rectangle::RadiusXProperty());
+    si.originalRadiusY = el.ReadLocalValue(wuxs::Rectangle::RadiusYProperty());
+    si.originalFill = el.ReadLocalValue(wuxs::Shape::FillProperty());
 
-    // Hide the taskbar's own indicator. Its states don't set Clip.
-    wuxm::RectangleGeometry nothing;
-    nothing.Rect(wf::Rect{0, 0, 0, 0});
-    el.Clip(nothing);
+    // Size and shape. Put back if the taskbar changes them.
+    auto reapply = [](wux::DependencyObject const& sender, wux::DependencyProperty const&) {
+        try {
+            if (g_unloading) return;
+            if (auto fe = sender.try_as<wux::FrameworkElement>()) ApplyDotShape(fe);
+        } catch (...) {}
+    };
+    si.widthToken =
+        el.RegisterPropertyChangedCallback(wux::FrameworkElement::WidthProperty(), reapply);
+    si.heightToken =
+        el.RegisterPropertyChangedCallback(wux::FrameworkElement::HeightProperty(), reapply);
+    ApplyDotShape(el);
 
-    // If anything puts a real clip back, empty it again.
-    si.clipToken = el.RegisterPropertyChangedCallback(
-        wux::UIElement::ClipProperty(),
-        [](wux::DependencyObject const& sender, wux::DependencyProperty const&) {
-            try {
-                if (g_unloading) return;
-                auto ui = sender.try_as<wux::UIElement>();
-                if (!ui) return;
-                auto current = ui.Clip();
-                if (current && current.Rect().Width == 0 && current.Rect().Height == 0) return;
-                wuxm::RectangleGeometry empty;
-                empty.Rect(wf::Rect{0, 0, 0, 0});
-                ui.Clip(empty);
-            } catch (...) {}
-        });
-
-    // Also shrink its composition visual to nothing, which XAML states can't undo.
-    wuxh::ElementCompositionPreview::GetElementVisual(el).Scale({0, 0, 1});
-
-    si.stateToken = group.CurrentStateChanged(
-        [weakEl = si.element](wf::IInspectable const&, wux::VisualStateChangedEventArgs const&) {
-            try {
-                auto indicator = weakEl.get();
-                if (!indicator || !g_styledIndicators) return;
-                for (auto& s : *g_styledIndicators) {
-                    if (s.element.get() == indicator) {
-                        UpdateDot(s);
-                        break;
-                    }
+    // Color. Inactive has no setter, so its color is the element's own Fill.
+    if (auto shape = el.try_as<wuxs::Shape>()) {
+        shape.Fill(wuxm::SolidColorBrush(kDotInactive));
+    }
+    // Active's setter is changed to the lighter dot. The attention, error,
+    // completed and paused states keep Windows' own colors.
+    if (group) {
+        try {
+            for (auto state : group.States()) {
+                if (state.Name() != L"ActiveRunningIndicator") continue;
+                for (auto base : state.Setters()) {
+                    auto setter = base.try_as<wux::Setter>();
+                    if (!setter) continue;
+                    winrt::hstring path;
+                    try { path = setter.Target().Path().Path(); } catch (...) {}
+                    if (path != L"Fill") continue;
+                    si.setters.push_back({setter, setter.Value()});
+                    setter.Value(wuxm::SolidColorBrush(kDotActive));
                 }
-            } catch (...) {}
-        });
-    UpdateDot(si);
-
-    // Let PlaceIndicator move and scale the dot instead of the old indicator.
-    for (auto& i : *g_indicators) {
-        if (i.element.get() != el) continue;
-        wux::FrameworkElement dotElement = dot;
-        i.dot = winrt::make_weak(dotElement);
-        i.dotSizeChanged = dotElement.SizeChanged(
-            winrt::auto_revoke, [weakButton = i.button](wf::IInspectable const&,
-                                                        wux::SizeChangedEventArgs const&) {
-                try {
-                    if (auto b = weakButton.get()) ReapplyButton(b);
-                } catch (...) {}
-            });
-        break;
+            }
+        } catch (...) {
+            Wh_Log(L"[dot] can't change the Active color: 0x%08X", winrt::to_hresult());
+        }
     }
     ReapplyButton(button);
 }
 
 void RestoreStyledIndicators() {
     for (auto& si : *g_styledIndicators) {
-        try {
-            if (si.group && si.stateToken.value) si.group.CurrentStateChanged(si.stateToken);
-        } catch (...) {}
-        try {
-            auto panel = si.panel.get();
-            uint32_t index;
-            if (panel && si.dot && panel.Children().IndexOf(si.dot, index)) {
-                panel.Children().RemoveAt(index);
-            }
-        } catch (...) {}
-        if (auto el = si.element.get()) {
-            try {
-                if (si.clipToken) {
-                    el.UnregisterPropertyChangedCallback(wux::UIElement::ClipProperty(),
-                                                         si.clipToken);
-                }
-                RestoreLocalValue(el, wux::UIElement::ClipProperty(), si.originalClip);
-            } catch (...) {}
+        for (auto& s : si.setters) {
+            try { s.setter.Value(s.value); } catch (...) {}
         }
+        auto el = si.element.get();
+        if (!el) continue;
+        try {
+            if (si.widthToken) {
+                el.UnregisterPropertyChangedCallback(wux::FrameworkElement::WidthProperty(),
+                                                     si.widthToken);
+            }
+            if (si.heightToken) {
+                el.UnregisterPropertyChangedCallback(wux::FrameworkElement::HeightProperty(),
+                                                     si.heightToken);
+            }
+            RestoreLocalValue(el, wux::FrameworkElement::WidthProperty(), si.originalWidth);
+            RestoreLocalValue(el, wux::FrameworkElement::HeightProperty(), si.originalHeight);
+            RestoreLocalValue(el, wuxs::Rectangle::RadiusXProperty(), si.originalRadiusX);
+            RestoreLocalValue(el, wuxs::Rectangle::RadiusYProperty(), si.originalRadiusY);
+            RestoreLocalValue(el, wuxs::Shape::FillProperty(), si.originalFill);
+        } catch (...) {}
     }
     g_styledIndicators->clear();
 }
@@ -2161,11 +2185,9 @@ void OnFrame() {
     //    while it's updating a button.
     if (g_platesDirtyFrames > 0) {
         g_platesDirtyFrames--;
-        g_scanningInFrame = true;
         try { ScanTaskbars(); } catch (...) {
             Wh_Log(L"ScanTaskbars failed: 0x%08X", winrt::to_hresult());
         }
-        g_scanningInFrame = false;
         for (auto& b : *g_buttons) {
             if (auto el = b.element.get()) {
                 try { EnsurePlate(el); } catch (...) {
@@ -2469,6 +2491,8 @@ void ProcessButton(wux::FrameworkElement const& button) {
             StyleIndicator(el, button);
         } else if (name == L"OverlayIcon") {
             TrackBadge(el);
+        } else if (name == L"ProgressIndicator") {
+            TrackIndicator(el, button);
         } else if ((name == L"BackgroundElement" || name == L"MultiWindowElement") &&
                    el.try_as<wuxc::Border>()) {
             HideHighlight(el);
@@ -3530,22 +3554,65 @@ int WindowPopupShiftPx(HWND hWnd, int x, int y, int cx, int cy) {
         if (bottom < w.top - MulDiv(80, dpi, 96) || bottom > w.top + MulDiv(12, dpi, 96)) {
             return;
         }
-        float magTop = g_dockBottomGap + (g_dockHeight - g_iconSize) / 2 + g_scale * g_iconSize;
-        float insetDips = std::max(DockTopInset(), g_pointerOver ? magTop : 0.0f) + kPreviewGap;
+        float insetDips = PopupInsetDips();
         int target = (int)w.bottom - MulDiv((int)std::ceil(insetDips), dpi, 96);
         shift = std::max(0, target - bottom);
     });
     return shift;
 }
 
+
+
+// The Recycle Bin's name tooltip: while the pointer is on the Recycle Bin, a
+// tooltip window is put just above the dock (or the biggest magnified icon),
+// centered on the Recycle Bin, the same height as the other buttons' tooltips.
+// Its own position is the pointer's, nowhere near the top of the taskbar
+// window, so WindowPopupShiftPx wouldn't move it.
+bool MoveTrashTooltip(HWND hWnd, int& x, int& y, int cx, int cy) {
+    if (!g_trashHovered && !g_trashTipOpen) return false;
+    WCHAR cls[64];
+    if (!GetClassName(hWnd, cls, ARRAYSIZE(cls))) return false;
+    std::wstring lowerClass(cls);
+    std::transform(lowerClass.begin(), lowerClass.end(), lowerClass.begin(), ::towlower);
+    if (!IsNameTooltipWindow(lowerClass)) return false;
+
+    RECT r{x, y, x + cx, y + cy};
+    HMONITOR monitor = MonitorFromRect(&r, MONITOR_DEFAULTTONEAREST);
+    bool moved = false;
+    ForEachTaskbarWindow([&](HWND tb) {
+        if (moved) return;
+        if (GetWindowThreadProcessId(tb, nullptr) != GetCurrentThreadId()) return;
+        if (MonitorFromWindow(tb, MONITOR_DEFAULTTONEAREST) != monitor) return;
+        RECT w;
+        if (!GetWindowRect(tb, &w)) return;
+        UINT dpi = GetDpiForWindow(tb);
+        // Placed just above the taskbar window's top, like the other tooltips:
+        // leave it to WindowPopupShiftPx so it ends up in exactly the same place.
+        int bottom = y + cy;
+        if (bottom >= w.top - MulDiv(80, dpi, 96) && bottom <= w.top + MulDiv(12, dpi, 96)) {
+            return;
+        }
+        // Otherwise it has drifted to the pointer: put it back above the dock.
+        float insetDips = PopupInsetDips();
+        y = (int)w.bottom - MulDiv((int)std::ceil(insetDips), dpi, 96) - cy;
+        x = (int)w.left + MulDiv((int)std::lround(g_trashCenterDips.load()), dpi, 96) - cx / 2;
+        moved = true;
+    });
+    return moved;
+}
+
 BOOL WINAPI SetWindowPos_Hook(HWND hWnd, HWND after, int X, int Y, int cx, int cy, UINT flags) {
     if (!g_unloading && !(flags & SWP_NOMOVE)) {
-        int shift = 0;
-        try { shift = WindowPopupShiftPx(hWnd, X, Y, cx, cy); } catch (...) {}
-        if (shift > 0) {
-            g_lastShiftedWnd.store(hWnd);
-            Y += shift;
-            g_lastShiftedY.store(Y);
+        bool trashMoved = false;
+        try { trashMoved = MoveTrashTooltip(hWnd, X, Y, cx, cy); } catch (...) {}
+        if (!trashMoved) {
+            int shift = 0;
+            try { shift = WindowPopupShiftPx(hWnd, X, Y, cx, cy); } catch (...) {}
+            if (shift > 0) {
+                g_lastShiftedWnd.store(hWnd);
+                Y += shift;
+                g_lastShiftedY.store(Y);
+            }
         }
     }
     return SetWindowPos_Original(hWnd, after, X, Y, cx, cy, flags);
@@ -3556,12 +3623,16 @@ DeferWindowPos_t DeferWindowPos_Original;
 HDWP WINAPI DeferWindowPos_Hook(HDWP hdwp, HWND hWnd, HWND after, int X, int Y, int cx, int cy,
                                 UINT flags) {
     if (!g_unloading && !(flags & SWP_NOMOVE)) {
-        int shift = 0;
-        try { shift = WindowPopupShiftPx(hWnd, X, Y, cx, cy); } catch (...) {}
-        if (shift > 0) {
-            g_lastShiftedWnd.store(hWnd);
-            Y += shift;
-            g_lastShiftedY.store(Y);
+        bool trashMoved = false;
+        try { trashMoved = MoveTrashTooltip(hWnd, X, Y, cx, cy); } catch (...) {}
+        if (!trashMoved) {
+            int shift = 0;
+            try { shift = WindowPopupShiftPx(hWnd, X, Y, cx, cy); } catch (...) {}
+            if (shift > 0) {
+                g_lastShiftedWnd.store(hWnd);
+                Y += shift;
+                g_lastShiftedY.store(Y);
+            }
         }
     }
     return DeferWindowPos_Original(hdwp, hWnd, after, X, Y, cx, cy, flags);
@@ -3676,9 +3747,9 @@ void UpdateOverWindows() {
     ClipTaskbars();
 }
 
-// Applies "Magnify over windows" and "Auto-hide the dock" as they're now
-// set. Also done whenever a taskbar appears (see NoteTaskbarFrame), since the
-// mod is often loaded before there is one.
+// Applies the dock-over-windows behavior and auto-hide. Also done whenever a
+// taskbar appears (see NoteTaskbarFrame), since the mod is often loaded before
+// there is one.
 void ApplyMagnifyOverWindows() {
     if (HWND tb = FindTaskbar()) {
         RunFromWindowThread(tb, [](void*) { ScheduleOverWindows(true); }, nullptr);
